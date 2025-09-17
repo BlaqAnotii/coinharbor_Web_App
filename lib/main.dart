@@ -208,6 +208,17 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           : null,
       body: const WelcomeScreen(),
+      floatingActionButton: InkWell(
+        onTap: () {},
+        child: const CircleAvatar(
+          backgroundColor: AppColors.primary,
+          radius: 30,
+          child: Icon(
+            Iconsax.message5,
+            color: AppColors.white,
+          ),
+        ),
+      ),
     );
   }
 }
