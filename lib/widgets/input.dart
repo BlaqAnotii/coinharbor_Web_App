@@ -35,7 +35,8 @@ class Input extends StatelessWidget {
       this.activeBorderColor,
       this.controller,
       this.isEnabled = true,
-      this.isMultiline = false});
+      this.isMultiline = false,
+      required String? Function(dynamic val) validator});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,7 @@ class Input extends StatelessWidget {
               .textTheme
               .bodyLarge!
               .copyWith(color: AppColors.text),
-          textAlignVertical: TextAlignVertical(y: 0.6),
+          textAlignVertical: const TextAlignVertical(y: 0.6),
           keyboardType: inputType,
           obscureText: isPassword,
           decoration: InputDecoration(
@@ -65,16 +66,17 @@ class Input extends StatelessWidget {
               suffixIcon: suffixIcon,
               prefixIcon: prefixIcon,
               enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(35.0),
                   borderSide: BorderSide(
                       color: borderColor ?? AppColors.border,
-                      width: 1.5,
+                      width: 0.5,
                       style: BorderStyle.solid)),
               focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(35.0),
                   borderSide: BorderSide(
-                      color: activeBorderColor ?? AppColors.activeBorder,
-                      width: 2.5,
+                      color: activeBorderColor ??
+                          AppColors.activeBorder,
+                      width: 0.5,
                       style: BorderStyle.solid)),
               hintText: placeholder));
     } else {
@@ -97,6 +99,8 @@ class Input extends StatelessWidget {
               fillColor: AppColors.white,
               hintStyle: TextStyle(
                 color: AppColors.hint,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
               ),
               label: Text(label ?? ""),
               suffixIcon: suffixIcon,
@@ -105,23 +109,24 @@ class Input extends StatelessWidget {
                   .textTheme
                   .titleLarge!
                   .copyWith(color: AppColors.activeBorder),
-                  border: const OutlineInputBorder(
-                     borderSide: BorderSide(
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(35),
+                  borderSide: const BorderSide(
                       color: Color(0xfff58634),
-                      width: 1.5,
-                      style: BorderStyle.solid)
-                  ),
+                      width: 0.5,
+                      style: BorderStyle.solid)),
               enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(35.0),
                   borderSide: BorderSide(
                       color: borderColor ?? AppColors.border,
-                      width: 1.5,
+                      width: 0.5,
                       style: BorderStyle.solid)),
               focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(35.0),
                   borderSide: BorderSide(
-                      color: activeBorderColor ?? AppColors.activeBorder,
-                      width: 2.5,
+                      color: activeBorderColor ??
+                          AppColors.activeBorder,
+                      width: 0.5,
                       style: BorderStyle.solid)),
               hintText: placeholder));
     }
@@ -129,14 +134,16 @@ class Input extends StatelessWidget {
 }
 
 extension StringCasingExtension on String {
-  String toCapitalized() =>
-      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toCapitalized() => length > 0
+      ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
+      : '';
   String toTitleCase() => length > 0
       ? replaceAll(RegExp(' +'), ' ')
           .split(' ')
           .map((str) => str.toCapitalized())
           .join(' ')
       : this;
-  String sanitizePhoneNumber() => replaceAll(" ", "").replaceAll("-", "");
+  String sanitizePhoneNumber() =>
+      replaceAll(" ", "").replaceAll("-", "");
   String lastChars(int n) => substring(length - n);
 }

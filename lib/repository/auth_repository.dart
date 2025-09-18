@@ -1,4 +1,3 @@
-
 import 'package:coinharbor/config/urlPath.dart';
 import 'package:coinharbor/data/https.dart';
 import 'package:coinharbor/services/app_cache.dart';
@@ -12,6 +11,11 @@ class AuthRepository {
       data,
     );
     final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('REGISTER IS OK');
+    } else {
+      print('REGISTER FAILED');
+    }
     // trying to get the token from the response and storing using sharedPreferences
     return responseData;
   }
@@ -22,6 +26,13 @@ class AuthRepository {
       data,
     );
     final responseData = (response.data);
+
+    if (responseData['status'] == true) {
+      print('VERIFY IS OK');
+      print(responseData);
+    } else {
+      print('VERIFY FAILED');
+    }
     // trying to get the token from the response and storing using sharedPreferences
 
     return responseData;
@@ -33,6 +44,12 @@ class AuthRepository {
       data,
     );
     final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('REVERIFY IS OK');
+      print(responseData);
+    } else {
+      print('REVERIFY FAILED');
+    }
     // trying to get the token from the response and storing using sharedPreferences
 
     return responseData;
@@ -44,87 +61,99 @@ class AuthRepository {
       data,
     );
     final responseData = response.data;
-    if (response.statusCode == 200) {
+    if (responseData['status'] == true) {
       print('TIMINI::$responseData');
 
-      final userToken = responseData['token'].toString();
+      final userToken = responseData['data']['token'].toString();
       final userID = responseData['data']['id'].toString();
-      final fname = responseData['data']['firstname'].toString();
+      final fname = responseData['data']['name'].toString();
 
-      final name = responseData['data']['lastname'].toString();
       final email = responseData['data']['email'].toString();
-      final phone = responseData['data']['phone'].toString();
       userServices.cache.setStringPreference('token', userToken);
       userServices.cache.setStringPreference('id', userID);
-      userServices.cache.setStringPreference('firstname', fname);
+      userServices.cache.setStringPreference('name', fname);
 
-      userServices.cache.setStringPreference('lastname', name);
       userServices.cache.setStringPreference('email', email);
-      userServices.cache.setStringPreference('phone', phone);
 
-      String? token = userServices.cache.getStringPreference('token');
+      String? token =
+          userServices.cache.getStringPreference('token');
       String? iD = userServices.cache.getStringPreference('id');
-      String? lname = userServices.cache.getStringPreference('lastname');
-      String? firstname = userServices.cache.getStringPreference('firstname');
+
+      String? firstname =
+          userServices.cache.getStringPreference('name');
 
       // Extracting business details
-      final businesses = responseData['data']['businesses'];
-      if (businesses != null && businesses is List && businesses.isNotEmpty) {
-        final business = businesses[0]; // Assuming the first business
+      // final businesses = responseData['data']['businesses'];
+      // if (businesses != null &&
+      //     businesses is List &&
+      //     businesses.isNotEmpty) {
+      //   final business =
+      //       businesses[0]; // Assuming the first business
 
-        final businessID = business['id'].toString();
-        final businessName = business['name'] ?? '';
-        final businessAddress = business['address'] ?? '';
-        final businessCity = business['city'] ?? '';
-        final businessState = business['state'] ?? '';
-        final businessEmail = business['email'] ?? '';
-        final registrationNumber = business['registration_number'] ?? '';
-        final businessCategory = business['category'] ?? '';
-        final businessRole = business['role'] ?? '';
+      //   final businessID = business['id'].toString();
+      //   final businessName = business['name'] ?? '';
+      //   final businessAddress = business['address'] ?? '';
+      //   final businessCity = business['city'] ?? '';
+      //   final businessState = business['state'] ?? '';
+      //   final businessEmail = business['email'] ?? '';
+      //   final registrationNumber =
+      //       business['registration_number'] ?? '';
+      //   final businessCategory = business['category'] ?? '';
+      //   final businessRole = business['role'] ?? '';
 
-        // Save business details
-        userServices.cache.setStringPreference('business_id', businessID);
-        userServices.cache.setStringPreference('business_name', businessName);
-        userServices.cache
-            .setStringPreference('business_address', businessAddress);
-        userServices.cache.setStringPreference('business_city', businessCity);
-        userServices.cache.setStringPreference('business_state', businessState);
-        userServices.cache.setStringPreference('business_email', businessEmail);
-        userServices.cache
-            .setStringPreference('registration_number', registrationNumber);
-        userServices.cache
-            .setStringPreference('business_category', businessCategory);
-        userServices.cache.setStringPreference('business_role', businessRole);
+      //   // Save business details
+      //   userServices.cache
+      //       .setStringPreference('business_id', businessID);
+      //   userServices.cache
+      //       .setStringPreference('business_name', businessName);
+      //   userServices.cache.setStringPreference(
+      //       'business_address', businessAddress);
+      //   userServices.cache
+      //       .setStringPreference('business_city', businessCity);
+      //   userServices.cache.setStringPreference(
+      //       'business_state', businessState);
+      //   userServices.cache.setStringPreference(
+      //       'business_email', businessEmail);
+      //   userServices.cache.setStringPreference(
+      //       'registration_number', registrationNumber);
+      //   userServices.cache.setStringPreference(
+      //       'business_category', businessCategory);
+      //   userServices.cache
+      //       .setStringPreference('business_role', businessRole);
 
-        // Extract and save store details
-        if (business['stores'] != null &&
-            (business['stores'] as List).isNotEmpty) {
-          final store = business['stores'][0]; // First store
+      //   // Extract and save store details
+      //   if (business['stores'] != null &&
+      //       (business['stores'] as List).isNotEmpty) {
+      //     final store = business['stores'][0]; // First store
 
-          final storeID = store['id'].toString();
-          final storeName = store['store_name'] ?? '';
-          final storeAddress = store['address'] ?? '';
+      //     final storeID = store['id'].toString();
+      //     final storeName = store['store_name'] ?? '';
+      //     final storeAddress = store['address'] ?? '';
 
-          userServices.cache.setStringPreference('store_id', storeID);
-          userServices.cache.setStringPreference('store_name', storeName);
-          userServices.cache.setStringPreference('store_address', storeAddress);
-        }
-      }
+      //     userServices.cache
+      //         .setStringPreference('store_id', storeID);
+      //     userServices.cache
+      //         .setStringPreference('store_name', storeName);
+      //     userServices.cache.setStringPreference(
+      //         'store_address', storeAddress);
+      //   }
+      // }
       // Re-initialize userServices after saving data
       userServices.initializer();
 
       // Print saved values for debugging
-      print(
-          'Business ID:::: ${userServices.cache.getStringPreference('business_id')}');
-      print(
-          'Business Name:::: ${userServices.cache.getStringPreference('business_name')}');
-      print(
-          'Store Name:::: ${userServices.cache.getStringPreference('store_name')}');
+      // print(
+      //     'Business ID:::: ${userServices.cache.getStringPreference('business_id')}');
+      // print(
+      //     'Business Name:::: ${userServices.cache.getStringPreference('business_name')}');
+      // print(
+      //     'Store Name:::: ${userServices.cache.getStringPreference('store_name')}');
 
       print('Token:::: $token');
       print('ID:::: $iD');
-      print('LNAME:::: $lname');
       print('FNAME:::: $firstname');
+    } else {
+      print('LOGIN GONE WRONG:::');
     }
 
     // trying to get the token from the response and storing using sharedPreferences
@@ -149,33 +178,46 @@ class AuthRepository {
     final businessCity = business['city'].toString();
     final businessState = business['state'].toString();
     final businessEmail = business['email'].toString();
-    final registrationNumber = business['registration_number'].toString();
+    final registrationNumber =
+        business['registration_number'].toString();
     final businessCategory = business['category'].toString();
     final businessLogo = business['logo'] ?? '';
 
     // Save business details to shared preferences
-    userServices.cache.setStringPreference('business_id', businessID);
-    userServices.cache.setStringPreference('business_name', businessName);
-    userServices.cache.setStringPreference('business_address', businessAddress);
-    userServices.cache.setStringPreference('business_city', businessCity);
-    userServices.cache.setStringPreference('business_state', businessState);
-    userServices.cache.setStringPreference('business_email', businessEmail);
     userServices.cache
-        .setStringPreference('registration_number', registrationNumber);
+        .setStringPreference('business_id', businessID);
     userServices.cache
-        .setStringPreference('business_category', businessCategory);
-    userServices.cache.setStringPreference('business_logo', businessLogo);
+        .setStringPreference('business_name', businessName);
+    userServices.cache.setStringPreference(
+        'business_address', businessAddress);
+    userServices.cache
+        .setStringPreference('business_city', businessCity);
+    userServices.cache
+        .setStringPreference('business_state', businessState);
+    userServices.cache
+        .setStringPreference('business_email', businessEmail);
+    userServices.cache.setStringPreference(
+        'registration_number', registrationNumber);
+    userServices.cache.setStringPreference(
+        'business_category', businessCategory);
+    userServices.cache
+        .setStringPreference('business_logo', businessLogo);
 
     // Extract and save store details
-    if (business['stores'] != null && (business['stores'] as List).isNotEmpty) {
-      final store = business['stores'][0]; // Assuming saving the first store
+    if (business['stores'] != null &&
+        (business['stores'] as List).isNotEmpty) {
+      final store = business['stores']
+          [0]; // Assuming saving the first store
       final storeID = store['id'].toString();
       final storeName = store['store_name'].toString();
       final storeAddress = store['address'].toString();
 
-      userServices.cache.setStringPreference('store_id', storeID);
-      userServices.cache.setStringPreference('store_name', storeName);
-      userServices.cache.setStringPreference('store_address', storeAddress);
+      userServices.cache
+          .setStringPreference('store_id', storeID);
+      userServices.cache
+          .setStringPreference('store_name', storeName);
+      userServices.cache
+          .setStringPreference('store_address', storeAddress);
     }
 
     // Re-initialize userServices after saving data
@@ -195,7 +237,8 @@ class AuthRepository {
   AppData cache = getIt<AppData>();
 
   Future createStore(Map<String, dynamic> data) async {
-    String? businessID = cache.getStringPreference('business_id');
+    String? businessID =
+        cache.getStringPreference('business_id');
 
     var response = await httpPost(
       "${UrlPath.getstores}$businessID/stores",
@@ -209,7 +252,8 @@ class AuthRepository {
   }
 
   Future inviteUser(Map<String, dynamic> data) async {
-    String? businessID = cache.getStringPreference('business_id');
+    String? businessID =
+        cache.getStringPreference('business_id');
 
     var response = await httpPost(
       "${UrlPath.inviteUser}$businessID/invite",
@@ -236,19 +280,20 @@ class AuthRepository {
     return response;
   }
 
-    Future addProduct(
-
-      FormData data, 
-      ) async {
-            String? businessID = cache.getStringPreference('business_id');
-      String? token = userServices.cache.getStringPreference('token');
+  Future addProduct(
+    FormData data,
+  ) async {
+    String? businessID =
+        cache.getStringPreference('business_id');
+    String? token =
+        userServices.cache.getStringPreference('token');
 
     var response = await httpPost2(
       "${UrlPath.createProduct}$businessID/products",
       data,
-      token: token ?? "",  // Pass the token explicitly
-    hasAuth: true, // Ensure auth headers are set
-        );
+      token: token ?? "", // Pass the token explicitly
+      hasAuth: true, // Ensure auth headers are set
+    );
     print("Response status: ${response.statusCode}");
     print("Response data: ${response.data}");
     final responseData = response.data;

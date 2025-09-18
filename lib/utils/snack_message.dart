@@ -10,23 +10,20 @@ Widget toast(String message, {ToastType? toastType}) {
   IconData iconData = Icons.warning;
   if (toastType! == ToastType.error) {
     iconData = Icons.error;
-    listColor = [
-      const Color.fromARGB(255, 229, 94, 27),
-      const Color.fromARGB(255, 183, 28, 28)
-    ];
+    listColor = [Colors.red, Colors.red];
   } else if (toastType == ToastType.success) {
     iconData = Icons.check_circle;
-    listColor = [Colors.green, const Color(0XFF33691E)];
+    listColor = [AppColors.darkGreen, AppColors.darkGreen];
   } else if (toastType == ToastType.info) {
     iconData = Icons.info;
     listColor = [
-      const Color.fromARGB(255, 43, 126, 251),
-      const Color.fromARGB(255, 4, 7, 101)
+      AppColors.primary,
+      AppColors.primary,
     ];
   } else {
     listColor = [
-      const Color.fromARGB(255, 249, 195, 59),
-      const Color.fromARGB(255, 207, 104, 8)
+      AppColors.primary,
+      AppColors.primary,
     ];
   }
   return Padding(
@@ -37,13 +34,10 @@ Widget toast(String message, {ToastType? toastType}) {
         margin: EdgeInsets.only(top: 50.h),
         padding: EdgeInsets.all(12.0.h),
         decoration: BoxDecoration(
-            border: Border.all(color: AppColors.lightGrey, width: 2.5),
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            gradient: LinearGradient(
-              colors: listColor,
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            )),
+          gradient: LinearGradient(
+            colors: listColor,
+          ),
+        ),
         child: Row(
           children: [
             Icon(

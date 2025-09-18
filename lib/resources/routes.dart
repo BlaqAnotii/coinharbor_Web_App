@@ -1,4 +1,7 @@
 import 'package:coinharbor/main.dart';
+import 'package:coinharbor/views/auth/create_account.dart';
+import 'package:coinharbor/views/auth/email_verification.dart';
+import 'package:coinharbor/views/auth/login.dart';
 import 'package:coinharbor/views/welcome_screen.dart';
 import 'package:coinharbor/widgets/MenuController.dart'
     as mcontroller;
@@ -32,6 +35,26 @@ class AppRouteConfig {
           return const MyHomePage();
         },
       ),
+      GoRoute(
+        path: '/create-account',
+        builder: (context, GoRouterState state) {
+          return const CreateAccountScreen();
+        },
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, GoRouterState state) {
+          return const LoginScreen();
+        },
+      ),
+      GoRoute(
+        path: '/verification/:email',
+        builder: (context, GoRouterState state) {
+          final email = state.pathParameters['email'] ?? '';
+          return EmailVerificationScreen(email: email);
+        },
+      ),
+
       //   GoRoute(
       //   path: '/point-of-sales/home',
       //   builder: (context, GoRouterState state) {

@@ -332,7 +332,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           title: ResponsiveWidget.isSmallScreen(context)
               ? InkWell(
                   onTap: () {
-                    //  context.go('/home');
+                    context.go('/home');
                   },
                   child: Image.asset(
                     'assets/image/logo.png',
@@ -348,7 +348,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       SizedBox(width: screenSize.width / 70),
                       InkWell(
                         onTap: () {
-                          //  context.go('/home');
+                          context.go('/home');
                         },
                         child: Image.asset(
                           'assets/image/logo.png',
@@ -457,7 +457,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       AppOutlineButton(
                         height: 45,
                         width: 120,
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/login');
+                        },
                         text: 'Login',
                       ),
                       SizedBox(width: screenSize.width / 90),
@@ -465,7 +467,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       AppButton(
                         height: 45,
                         width: 120,
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/create-account');
+                        },
                         text: 'Sign Up',
                         bg: AppColors.foundationPurpleNormal,
                       ),
@@ -3252,14 +3256,18 @@ class _FirstSectionState extends State<FirstSection>
                       AppOutlineButton(
                         height: 45,
                         width: 210,
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/login');
+                        },
                         text: 'Login',
                       ),
                       const SizedBox(height: 10),
                       AppButton(
                         height: 45,
                         width: 210,
-                        onPressed: () {},
+                        onPressed: () {
+                          context.go('/create-account');
+                        },
                         text: 'Sign Up',
                         bg: AppColors.foundationPurpleNormal,
                       ),
@@ -3393,14 +3401,18 @@ class _FirstSectionState extends State<FirstSection>
                           AppOutlineButton(
                             height: 45,
                             width: 190,
-                            onPressed: () {},
+                            onPressed: () {
+                              context.go('/login');
+                            },
                             text: 'Login',
                           ),
                           SizedBox(width: screenSize.width / 90),
                           AppButton(
                             height: 45,
                             width: 190,
-                            onPressed: () {},
+                            onPressed: () {
+                              context.go('/create-account');
+                            },
                             text: 'Sign Up',
                             bg: AppColors.foundationPurpleNormal,
                           ),

@@ -4,169 +4,180 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-
 import 'package:coinharbor/controllers/base.vm.dart';
+import 'package:coinharbor/resources/events.dart';
+import 'package:coinharbor/utils/snack_message.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:html' as html;
 import 'package:image_picker/image_picker.dart';
 
-
-
 class AuthViewModel extends BaseViewModel {
-//   final TextEditingController phonenumber = TextEditingController();
-//   final TextEditingController password = TextEditingController();
-//   final TextEditingController email = TextEditingController();
-//   final TextEditingController fname = TextEditingController();
-//   final TextEditingController lname = TextEditingController();
+  final TextEditingController phonenumber =
+      TextEditingController();
+  final TextEditingController password = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController fname = TextEditingController();
+  final TextEditingController lname = TextEditingController();
 
-//   final TextEditingController otp = TextEditingController();
-//   final TextEditingController emailLogin = TextEditingController();
-//   final TextEditingController passwordLogin = TextEditingController();
+  final TextEditingController otp = TextEditingController();
+  final TextEditingController emailLogin =
+      TextEditingController();
+  final TextEditingController passwordLogin =
+      TextEditingController();
 
 //   final emailReg =
 //       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
 //   bool isHidden = false;
 //   bool isChecked = true;
-//   final formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
 
-//   Future processSignUp(BuildContext context) async {
-//     try {
-//       startLoader();
-//       var data = {
-//         "firstname": fname.text.trim(),
-//         "lastname": lname.text.trim(),
-//         "phone": phonenumber.text.trim(),
-//         "email": email.text.trim(),
-//         "password": password.text.trim(),
-//       };
+  Future processSignUp(BuildContext context) async {
+    try {
+      startLoader();
+      var data = {
+        "first_name": fname.text.trim(),
+        "last_name": lname.text.trim(),
+        "email": email.text.trim(),
+        "password": password.text.trim()
+      };
 
-//       var response = await authRepo.register(data);
-//       if (response != null) {
-//         //  await userService.initializer();
-//         print('REG OK::::$response');
-//         showCustomToast("Registration Successful",
-//             toastType: ToastType.success);
-//         stopLoader();
-//         String emailValue = email.text;
-//         context.replace('/verification/$emailValue');
-//       } else {
-//         stopLoader();
-//       }
-//     } catch (e, l) {
-//       stopLoader();
-//       print(e);
-//       print(l);
-//     }
-//   }
+      var response = await authRepo.register(data);
+      if (response != null) {
+        //  await userService.initializer();
+        print('REG OK::::$response');
+        showCustomToast("Registration Successful",
+            toastType: ToastType.success);
+        stopLoader();
+        String emailValue = email.text;
+        context.replace('/verification/$emailValue');
+      } else {
+        stopLoader();
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
 
-//   Future processEmailVerify(String emailVal, BuildContext context) async {
-//     try {
-//       startLoader();
-//       var data = {
-//         "email": emailVal,
-//         "code": otp.text.trim(),
-//       };
-//       var response = await authRepo.emailVerify(data);
-//       userService.cache.eventBus!
-//           .fire(const ApplicationEvent("", "stop_otp_timer", data: {}));
-//       if (response != null) {
-//         //await userService.initializer();
-//         showCustomToast("Email Verified Successfully",
-//             toastType: ToastType.success);
-//         stopLoader();
-//         context.replace('/login');
-//       } else {
-//         stopLoader();
-//       }
-//     } catch (e, l) {
-//       stopLoader();
-//       print(e);
-//       print(l);
-//     }
-//   }
+  Future processEmailVerify(
+      String emailVal, BuildContext context) async {
+    try {
+      startLoader();
+      var data = {
+        "email": emailVal,
+        "code": otp.text.trim(),
+      };
 
-//   Future processResendVerifyEmail(String emailVal) async {
-//     try {
-//       startLoader();
-//       var data = {"email": emailVal};
-//       var response = await authRepo.resendVerifyEmail(data);
+      print(
+          "Request Payload: $data"); // 👈 Added print statement
 
-//       if (response != null) {
-//         //await userService.initializer();
-//         userService.cache.eventBus!
-//             .fire(const ApplicationEvent("", "start_otp_timer", data: {}));
-//         showCustomToast("Verification Email Sent Successfully",
-//             toastType: ToastType.success);
-//         stopLoader();
-//       } else {
-//         stopLoader();
-//       }
-//     } catch (e, l) {
-//       stopLoader();
-//       print(e);
-//       print(l);
-//     }
-//   }
+      var response = await authRepo.emailVerify(data);
+      userService.cache.eventBus!.fire(const ApplicationEvent(
+          "", "stop_otp_timer",
+          data: {}));
+      if (response != null) {
+        //await userService.initializer();
+        showCustomToast("Email Verified Successfully",
+            toastType: ToastType.success);
+        stopLoader();
+        context.replace('/login');
+      } else {
+        stopLoader();
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
 
-//   Future processLogin(BuildContext context) async {
-//     try {
-//       startLoader();
-//       var data = {
-//         "email": emailLogin.text.trim(),
-//         "password": passwordLogin.text.trim(),
-//       };
-//       var response = await authRepo.login(data);
+  Future processResendVerifyEmail(String emailVal) async {
+    try {
+      startLoader();
+      var data = {"email": emailVal};
+      var response = await authRepo.resendVerifyEmail(data);
 
-//       if (response != null && response.data != null) {
-//         // Extract necessary data from the response
-//         final responseData = response.data;
-//         final status = responseData['data']['status'];
-//         final isBusinessCreated = responseData['data']['is_business_created'];
-//         final hasJoinedBusiness = responseData['data']['has_joined_business'];
-//       final businesses = responseData['data']['businesses'] ?? [];
+      if (response != null) {
+        //await userService.initializer();
+        userService.cache.eventBus!.fire(const ApplicationEvent(
+            "", "start_otp_timer",
+            data: {}));
+        showCustomToast("Verification Email Sent Successfully",
+            toastType: ToastType.success);
+        stopLoader();
+      } else {
+        stopLoader();
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
 
-//       // Extract user role safely
-//       dynamic userRole; 
-//       if (businesses.isNotEmpty) {
-//         userRole = businesses.first['role']; 
-//       }
+  Future processLogin(BuildContext context) async {
+    try {
+      startLoader();
+      var data = {
+        "email": emailLogin.text.trim(),
+        "password": passwordLogin.text.trim(),
+      };
+      var response = await authRepo.login(data);
 
-//       // Debugging: Print the actual role type and value
-//       print("User Role: $userRole (Type: ${userRole.runtimeType})");
+      if (response != null && response.data != null) {
+        // Extract necessary data from the response
+        final responseData = response.data;
 
-//       if (status != "active") {
-//         stopLoader();
-//         showCustomToast("Email not verified", toastType: ToastType.warning);
-//         String emailValue = emailLogin.text;
-//         context.replace('/verification/$emailValue');
-//       } else if (isBusinessCreated == false && hasJoinedBusiness == false) {
-//         stopLoader();
-//         showCustomToast("Login successful", toastType: ToastType.success);
-//         context.replace('/create-business');
-//       } else if (isBusinessCreated == false && hasJoinedBusiness == true) {
-//         stopLoader();
-//         showCustomToast("Join a business to proceed", toastType: ToastType.success);
-//         context.replace('/home');
-//       } else {
-//         stopLoader();
-//         showCustomToast("Login successful", toastType: ToastType.success);
-//         context.replace('/home');
-//       }
-//       } else {
-//         // Handle invalid or null response
-//         stopLoader();
-//         showCustomToast("Something went wrong. Please try again.",
-//             toastType: ToastType.error);
-//       }
-//     } catch (e, l) {
-//       stopLoader();
-//       print(e);
-//       print(l);
-//     }
-//   }
+        print('CONTROLLER::::$responseData');
+        //   final status = responseData['data']['status'];
+        //   final isBusinessCreated = responseData['data']['is_business_created'];
+        //   final hasJoinedBusiness = responseData['data']['has_joined_business'];
+        // final businesses = responseData['data']['businesses'] ?? [];
+
+        // // Extract user role safely
+        // dynamic userRole;
+        // if (businesses.isNotEmpty) {
+        //   userRole = businesses.first['role'];
+        // }
+
+        // // Debugging: Print the actual role type and value
+        // print("User Role: $userRole (Type: ${userRole.runtimeType})");
+
+        // if (status != "active") {
+        //   stopLoader();
+        //   showCustomToast("Email not verified", toastType: ToastType.warning);
+        //   String emailValue = emailLogin.text;
+        //   context.replace('/verification/$emailValue');
+        // } else if (isBusinessCreated == false && hasJoinedBusiness == false) {
+        //   stopLoader();
+        //   showCustomToast("Login successful", toastType: ToastType.success);
+        //   context.replace('/create-business');
+        // } else if (isBusinessCreated == false && hasJoinedBusiness == true) {
+        //   stopLoader();
+        //   showCustomToast("Join a business to proceed", toastType: ToastType.success);
+        //   context.replace('/home');
+        // } else {
+        //   stopLoader();
+        showCustomToast("Login successful",
+            toastType: ToastType.success);
+        context.replace('/home');
+        // }
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+            "Something went wrong. Please try again.",
+            toastType: ToastType.error);
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
 
 //   final TextEditingController busName = TextEditingController();
 //   final TextEditingController busAddr = TextEditingController();
@@ -448,13 +459,12 @@ class AuthViewModel extends BaseViewModel {
 //   }
 // }
 
-
 //    Future<List<PlatformFile>> pickImages(BuildContext context) async {
 //     FilePickerResult? result = await FilePicker.platform.pickFiles(
 //       type: FileType.image,
 //       allowMultiple: true,
 //       withData: true,
-     
+
 //     );
 
 //   if (result != null  && result.files.length == 4) {

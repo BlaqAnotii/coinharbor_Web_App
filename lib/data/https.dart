@@ -15,19 +15,22 @@ import 'network/error_handler.dart';
 UserServices userServices = getIt<UserServices>();
 
 Dio dio = Dio(BaseOptions(
-    baseUrl: Config.BASEAPI, followRedirects: true, headers: getHeaders()));
+    baseUrl: Config.BASEAPI,
+    followRedirects: true,
+    headers: getHeaders()));
 
-getHeaders() {
-  var headrs = {
-    "Content-Type": "application/json",
+Map<String, String> getHeaders() {
+  var headers = {
     "Accept": "application/json",
   };
-  if (userServices.isUserLoggedIn) {
-    headrs["Authorization"] =
-        "Bearer ${userServices.cache.getStringPreference("token")}";
+
+  String? token =
+      userServices.cache.getStringPreference("token");
+  if (token != null && token.isNotEmpty) {
+    headers["Authorization"] = "Bearer $token";
   }
 
-  return headrs;
+  return headers;
 }
 
 Future<dynamic> httpGet(String path,
@@ -46,7 +49,8 @@ Future<dynamic> httpGet(String path,
   print(dio.options.baseUrl + path);
   print('HOW FARRR:::::${dio.options.headers}');
   try {
-    var response = await dio.get(path, queryParameters: queryParam);
+    var response =
+        await dio.get(path, queryParameters: queryParam);
     print(response);
     return response;
   } on DioException catch (err) {
@@ -63,7 +67,9 @@ Future<dynamic> httpGet(String path,
 }
 
 Future<dynamic> httpPost(String path, dynamic fData,
-    {String token = "", bool hasAuth = false, List<MapEntry<String, MultipartFile>>? mapEntry}) async {
+    {String token = "",
+    bool hasAuth = false,
+    List<MapEntry<String, MultipartFile>>? mapEntry}) async {
   if (hasAuth) {
     dio.options.headers = {
       "Content-Type": "application/json",
@@ -74,36 +80,39 @@ Future<dynamic> httpPost(String path, dynamic fData,
     dio.options.headers = getHeaders();
   }
 
-  print("${Config.BASEURL}$path");
+  // ✅ Full URL
+  final url = "${Config.BASEURL}$path";
+  print(url);
 
   try {
-    // Convert fData to JSON instead of using FormData
-    var response = await dio.post(path, data: jsonEncode(fData));
+    var response = await dio.post(
+      url, // ✅ use the full URL here
+      data: jsonEncode(fData),
+    );
     return response;
   } on DioException catch (err) {
-    print("error happening @ ${dio.options.baseUrl}$path");
+    print("error happening @ $url");
     handleError(err);
-    print(err);
-    rethrow;
-  } on Exception catch (err) {
-    print(err);
     rethrow;
   } catch (err) {
     print(err);
     rethrow;
   }
 }
+
 Future<dynamic> httpPost2(String path, dynamic fData,
     {String token = "", bool hasAuth = false}) async {
   dio.options.headers = {
-    "Content-Type": "multipart/form-data", // ✅ Ensure correct content type
+    "Content-Type":
+        "multipart/form-data", // ✅ Ensure correct content type
     if (hasAuth) "Authorization": "Bearer $token",
   };
 
   print("API URL: ${Config.BASEURL}$path");
 
   try {
-    var response = await dio.post(path, data: fData); // ✅ Send FormData directly
+    var response = await dio.post(path,
+        data: fData); // ✅ Send FormData directly
     print("Response: ${response.data}");
     return response;
   } on DioException catch (err) {
@@ -115,6 +124,96 @@ Future<dynamic> httpPost2(String path, dynamic fData,
     rethrow;
   }
 }
+
+Future<dynamic> httpPost3(
+  String path,
+  dynamic data, {
+  List<MapEntry<String, MultipartFile>>? mapEntry,
+  bool hasAuth = false,
+}) async {
+  if (hasAuth) {
+    dio.options.headers =
+        getHeaders(); // ✅ Only set auth header if required
+  } else {
+    dio.options.headers = {
+      "Accept": "application/json",
+    };
+  }
+
+  print("${Config.BASEAPI}$path");
+
+  try {
+    if (data is FormData) {
+      if (mapEntry != null) {
+        data.files.addAll(mapEntry);
+      }
+    } else {
+      data = FormData.fromMap(data);
+    }
+
+    print("CReatePlease:::::::$data");
+
+    var response = await dio.post(path, data: data);
+
+    print("CReatePleaseRess:::::::$response");
+
+    return response;
+  } on DioException catch (err) {
+    print("error happening @ ${dio.options.baseUrl}$path");
+    handleError(err);
+    print(err);
+    rethrow;
+  } catch (err) {
+    print(err);
+    rethrow;
+  }
+}
+
+Future<dynamic> httpPost4(
+  String path,
+  dynamic data, {
+  bool hasAuth = false,
+}) async {
+  if (hasAuth) {
+    dio.options.headers = getHeaders();
+  } else {
+    dio.options.headers = {
+      "Accept": "application/json",
+    };
+  }
+
+  try {
+    // Log URL
+    final fullUrl = "${Config.BASEAPI}$path";
+    print("➡️ POST: $fullUrl");
+
+    // Log FormData fields/files
+    if (data is FormData) {
+      print("\n=== FORM DATA FIELDS ===");
+      for (var f in data.fields) {
+        print("${f.key}: ${f.value}");
+      }
+
+      print("\n=== FORM DATA FILES ===");
+      for (var f in data.files) {
+        final file = f.value;
+        print("${f.key}: ${file.filename} ");
+      }
+    }
+
+    // Send request
+    var response = await dio.post(fullUrl, data: data);
+    return response;
+  } on DioException catch (err) {
+    print("❌ HTTP error @ ${dio.options.baseUrl}$path");
+    handleError(err);
+    rethrow;
+  } catch (err) {
+    print("❌ Unknown error: $err");
+    rethrow;
+  }
+}
+
 // Future<dynamic> httpPost(String path, dynamic fData,
 //     {List<MapEntry<String, MultipartFile>>? mapEntry,
 //     String token = "",

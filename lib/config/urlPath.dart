@@ -1,8 +1,8 @@
 class UrlPath {
-  static const register = "/register";
-  static const login = "/login";
-  static const emailVerify = '/email/verify';
-  static const resendVerifyEmail = '/email/resend';
+  static const register = "/register.php";
+  static const login = "/login.php";
+  static const emailVerify = '/verify_email.php';
+  static const resendVerifyEmail = '/resend_verification.php';
   static const createBusiness = '/business/create';
   static const profile = '/user/profile';
   static const getstores = '/business/';
@@ -11,5 +11,4 @@ class UrlPath {
   static const fetchUsers = '/business/';
   static const joinBusiness = '/business/join';
   static const createProduct = '/business/';
-
 }

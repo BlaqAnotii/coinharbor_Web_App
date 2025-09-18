@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-
 import 'package:coinharbor/config/urlPath.dart';
 import 'package:coinharbor/data/https.dart';
 import 'package:coinharbor/data/model/member_model.dart';
@@ -29,7 +28,7 @@ class UserServices extends ChangeNotifier {
 
     if (userToken != null) {
       authToken = userToken;
-      cache.user = await getUserDetail();
+      // cache.user = await getUserDetail();
       if (cache.user != null) {
         isUserLoggedIn = true;
       }
@@ -49,8 +48,8 @@ class UserServices extends ChangeNotifier {
     try {
       // var response = await dio.get(UrlPath.profile);
       print('ECHO:::::::$token');
-      var response =
-          await httpGet(UrlPath.profile, hasAuth: true, token: token ?? "");
+      var response = await httpGet(UrlPath.profile,
+          hasAuth: true, token: token ?? "");
 
       print("Response status: ${response.statusCode}");
       print("Response data: ${response.data}");
@@ -77,10 +76,13 @@ class UserServices extends ChangeNotifier {
 
   Future<List<Store>> getStores() async {
     String? token = cache.getStringPreference('token');
-    String? businessID = cache.getStringPreference('business_id');
+    String? businessID =
+        cache.getStringPreference('business_id');
 
-    var response = await httpGet("${UrlPath.getstores}$businessID/stores",
-        hasAuth: true, token: token ?? "");
+    var response = await httpGet(
+        "${UrlPath.getstores}$businessID/stores",
+        hasAuth: true,
+        token: token ?? "");
 
     final responseData = (response.data);
     debugPrint("Response Data: $responseData");
@@ -91,7 +93,9 @@ class UserServices extends ChangeNotifier {
 
       debugPrint("Store JSON: $storeJson");
 
-      return storeJson.map((json) => Store.fromJson(json)).toList();
+      return storeJson
+          .map((json) => Store.fromJson(json))
+          .toList();
     }
 
 // Log unexpected response
@@ -101,10 +105,13 @@ class UserServices extends ChangeNotifier {
 
   Future<List<Member>> getMembers() async {
     String? token = cache.getStringPreference('token');
-    String? businessID = cache.getStringPreference('business_id');
+    String? businessID =
+        cache.getStringPreference('business_id');
 
-    var response = await httpGet("${UrlPath.fetchUsers}$businessID/members",
-        hasAuth: true, token: token ?? "");
+    var response = await httpGet(
+        "${UrlPath.fetchUsers}$businessID/members",
+        hasAuth: true,
+        token: token ?? "");
 
     final responseData = (response.data);
     debugPrint("Response Data: $responseData");
@@ -115,7 +122,9 @@ class UserServices extends ChangeNotifier {
 
       debugPrint("MEMBERS JSON: $memberJson");
 
-      return memberJson.map((json) => Member.fromJson(json)).toList();
+      return memberJson
+          .map((json) => Member.fromJson(json))
+          .toList();
     }
 
 // Log unexpected response
