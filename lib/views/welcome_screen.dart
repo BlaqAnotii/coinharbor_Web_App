@@ -2464,10 +2464,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           return Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 20),
-                            child: Image.asset(
-                              logo,
-                              height: 120,
-                              fit: BoxFit.cover,
+                            child: Opacity(
+                              opacity:
+                                  0.2, // 👈 adjust this (0.0 = fully transparent, 1.0 = fully visible)
+                              child: Image.asset(
+                                logo,
+                                height: 90,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           );
                         },

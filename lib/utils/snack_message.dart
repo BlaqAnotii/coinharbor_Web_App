@@ -27,12 +27,14 @@ Widget toast(String message, {ToastType? toastType}) {
     ];
   }
   return Padding(
-    padding: const EdgeInsets.all(20),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 200,
+    ),
     child: Align(
       alignment: Alignment.topCenter,
       child: Container(
         margin: EdgeInsets.only(top: 50.h),
-        padding: EdgeInsets.all(12.0.h),
+        padding: EdgeInsets.all(15.0.h),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: listColor,
@@ -43,7 +45,7 @@ Widget toast(String message, {ToastType? toastType}) {
             Icon(
               iconData,
               color: Colors.white,
-              size: 25,
+              size: 30,
             ),
             10.0.sbW,
             Expanded(
@@ -51,8 +53,8 @@ Widget toast(String message, {ToastType? toastType}) {
                 message,
                 style: const TextStyle(
                   color: AppColors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12.0,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15.0,
                 ),
               ),
             ),

@@ -9,23 +9,23 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class CreateAccountScreen extends StatefulWidget {
-  const CreateAccountScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<CreateAccountScreen> createState() =>
-      _CreateAccountScreenState();
+  State<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
-class _CreateAccountScreenState
-    extends State<CreateAccountScreen> {
+class _ForgotPasswordScreenState
+    extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
     return BaseView<AuthViewModel>(onModelReady: (model) {
       debugPrint("Alladu======");
-      model.setAppTitle('Create Account');
+      model.setAppTitle('Login');
     }, builder: (context, model, child) {
       return Scaffold(
         body: Container(
@@ -63,9 +63,9 @@ class _CreateAccountScreenState
                                         scale: 7,
                                       ),
                                     ),
-                                    const SizedBox(height: 18),
+                                    const SizedBox(height: 88),
                                     const Text(
-                                      "Create an account",
+                                      "Forget Password",
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight:
@@ -75,7 +75,7 @@ class _CreateAccountScreenState
                                     ),
                                     const SizedBox(height: 8),
                                     const Text(
-                                      "Sign up, Trade and Invest anytime",
+                                      "Enter Email to receive verification code",
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Color(0xff000000),
@@ -88,41 +88,8 @@ class _CreateAccountScreenState
                                           maxWidth: 400),
                                       height: 50.0,
                                       child: Input(
-                                        controller: model.fname,
-                                        label: 'First Name',
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return 'Enter firstname';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: CalcWidth(
-                                          context, 150,
-                                          maxWidth: 400),
-                                      height: 50.0,
-                                      child: Input(
-                                        controller: model.lname,
-                                        label: 'Last Name',
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return 'Enter lastname';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: CalcWidth(
-                                          context, 150,
-                                          maxWidth: 400),
-                                      height: 50.0,
-                                      child: Input(
-                                        controller: model.email,
+                                        // controller:
+                                        //     model.emailLogin,
                                         label: 'Email',
                                         validator: (val) {
                                           if (val!.isEmpty) {
@@ -130,27 +97,6 @@ class _CreateAccountScreenState
                                           }
                                           return null;
                                         },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: CalcWidth(
-                                          context, 150,
-                                          maxWidth: 400),
-                                      height: 50.0,
-                                      child: Input(
-                                        validator: (val) {
-                                          if (val!.isEmpty) {
-                                            return 'Enter password';
-                                          }
-                                          return null;
-                                        },
-                                        controller:
-                                            model.password,
-                                        suffixIcon: const Icon(Icons
-                                            .visibility_off_outlined),
-                                        label: 'Password',
-                                        isPassword: true,
                                       ),
                                     ),
                                     const SizedBox(height: 30),
@@ -161,20 +107,19 @@ class _CreateAccountScreenState
                                               maxWidth: 390),
                                           height: 50.0,
                                           child: AppButton(
-                                            text:
-                                                'Create Account',
+                                            text: 'Proceed',
                                             onPressed: () {
-                                              FocusManager
-                                                  .instance
-                                                  .primaryFocus
-                                                  ?.unfocus();
-                                              if (model.formKey
-                                                  .currentState!
-                                                  .validate()) {
-                                                model
-                                                    .processSignUp(
-                                                        context);
-                                              }
+                                              // FocusManager
+                                              //     .instance
+                                              //     .primaryFocus
+                                              //     ?.unfocus();
+                                              // if (model.formKey
+                                              //     .currentState!
+                                              //     .validate()) {
+                                              //   model
+                                              //       .processLogin(
+                                              //           context);
+                                              // }
                                             },
                                           )),
                                     ),
@@ -193,7 +138,7 @@ class _CreateAccountScreenState
                                             Text.rich(
                                               TextSpan(
                                                 text:
-                                                    "Have any account?          ",
+                                                    "Return back?          ",
                                                 style:
                                                     const TextStyle(
                                                   color: Color(
@@ -202,7 +147,7 @@ class _CreateAccountScreenState
                                                 children: [
                                                   TextSpan(
                                                     text:
-                                                        "Sign in",
+                                                        "Login",
                                                     recognizer:
                                                         TapGestureRecognizer()
                                                           ..onTap =
@@ -280,7 +225,7 @@ class _CreateAccountScreenState
                               height: size.height * 0.03,
                             ),
                             const Text(
-                              "Create an account",
+                              "Forget Password",
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -289,7 +234,7 @@ class _CreateAccountScreenState
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              "Sign up, Trade and Invest anytime",
+                              "Enter Email to receive verification code",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xff000000),
@@ -297,30 +242,8 @@ class _CreateAccountScreenState
                             ),
                             const SizedBox(height: 30),
                             Input(
-                              controller: model.fname,
-                              label: 'First Name',
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return 'Enter firstname';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 30),
-                            Input(
-                              controller: model.lname,
-                              label: 'Last Name',
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return 'Enter lastname';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            Input(
-                                controller:
-                                    model.email,
+                              //   controller:
+                              //       model.email,
                               label: 'Email',
                               validator: (val) {
                                 if (val!.isEmpty) {
@@ -329,38 +252,12 @@ class _CreateAccountScreenState
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 20),
-                            Input(
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return 'Enter password';
-                                }
-                                return null;
-                              },
-                                controller:
-                                    model.password,
-                              suffixIcon: const Icon(
-                                  Icons.visibility_off_outlined),
-                              label: 'Password',
-                              isPassword: true,
-                            ),
                             const SizedBox(height: 30),
                             Center(
                                 child: AppButton(
-                                    onPressed: () {
-                                      FocusManager
-                                                  .instance
-                                                  .primaryFocus
-                                                  ?.unfocus();
-                                              if (model.formKey
-                                                  .currentState!
-                                                  .validate()) {
-                                                model
-                                                    .processSignUp(
-                                                        context);
-                                              }
-                                    },
-                                    text: 'Create Account')),
+                                    onPressed: () {},
+                                    text: 'Proceed')),
+                            const SizedBox(height: 20),
                             const SizedBox(height: 30),
                             Row(
                               mainAxisAlignment:
@@ -370,13 +267,13 @@ class _CreateAccountScreenState
                               children: [
                                 Text.rich(
                                   TextSpan(
-                                    text: "Have any account? ",
+                                    text: "Return back? ",
                                     style: const TextStyle(
                                       color: Color(0xff000000),
                                     ),
                                     children: [
                                       TextSpan(
-                                        text: "Sign in",
+                                        text: "Login",
                                         recognizer:
                                             TapGestureRecognizer()
                                               ..onTap = () {

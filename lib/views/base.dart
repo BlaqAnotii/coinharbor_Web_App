@@ -14,25 +14,26 @@ import '../resources/colors.dart';
 
 // the base view controls all the states of all the UIs
 class BaseView<T extends BaseViewModel> extends StatefulWidget {
-  final Widget Function(BuildContext context, T model, Widget? child)? builder;
+  final Widget Function(
+      BuildContext context, T model, Widget? child)? builder;
   final Function(T)? onModelReady;
   final Function(T, ApplicationEvent)? onListenForEvent;
   final Function(T)? onModelDispose;
   final Color color;
   const BaseView(
-      {Key? key,
+      {super.key,
       this.builder,
       this.onModelReady,
       this.onListenForEvent,
       this.color = AppColors.white,
-      this.onModelDispose})
-      : super(key: key);
+      this.onModelDispose});
 
   @override
   _BaseViewState<T> createState() => _BaseViewState<T>();
 }
 
-class _BaseViewState<T extends BaseViewModel> extends State<BaseView<T>> {
+class _BaseViewState<T extends BaseViewModel>
+    extends State<BaseView<T>> {
   T model = getIt<T>();
 
   StreamSubscription? subscription;
@@ -49,8 +50,9 @@ class _BaseViewState<T extends BaseViewModel> extends State<BaseView<T>> {
   }
 
   listenForEvents() {
-    subscription =
-        userServices.cache.eventBus!.on<ApplicationEvent>().listen((event) {
+    subscription = userServices.cache.eventBus!
+        .on<ApplicationEvent>()
+        .listen((event) {
       if (widget.onListenForEvent != null) {
         widget.onListenForEvent!(model, event);
       }
@@ -82,7 +84,7 @@ class _BaseViewState<T extends BaseViewModel> extends State<BaseView<T>> {
               widget.builder!.call(_, model, __),
               if (model.isLoading)
                 Stack(children: [
-                  Container(
+                  SizedBox(
                     width: width(context),
                     height: height(context),
                     child: ModalBarrier(
@@ -90,11 +92,22 @@ class _BaseViewState<T extends BaseViewModel> extends State<BaseView<T>> {
                       dismissible: false,
                     ),
                   ),
-                  const Center(
-                      child: SpinKitFoldingCube(
-                    color: AppColors.orange,
-                    size: 60,
-                  ))
+                  Center(
+                    child: Container(
+                      height: 100,
+                      width: 100,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffFFFFFF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Center(
+                          child: SpinKitFoldingCube(
+                        color: AppColors.primary,
+                        size: 30,
+                      )),
+                    ),
+                  )
                 ])
               // ShimmerUser()
             ],

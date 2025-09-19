@@ -1,6 +1,7 @@
 import 'package:coinharbor/main.dart';
 import 'package:coinharbor/views/auth/create_account.dart';
 import 'package:coinharbor/views/auth/email_verification.dart';
+import 'package:coinharbor/views/auth/forgot_password.dart';
 import 'package:coinharbor/views/auth/login.dart';
 import 'package:coinharbor/views/welcome_screen.dart';
 import 'package:coinharbor/widgets/MenuController.dart'
@@ -52,6 +53,12 @@ class AppRouteConfig {
         builder: (context, GoRouterState state) {
           final email = state.pathParameters['email'] ?? '';
           return EmailVerificationScreen(email: email);
+        },
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, GoRouterState state) {
+          return const ForgotPasswordScreen();
         },
       ),
 

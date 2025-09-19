@@ -254,7 +254,7 @@ class _EmailVerificationScreenState
                             ),
                             const SizedBox(height: 30),
                             Input(
-                              //controller: model.name,
+                              controller: model.otp,
                               label:
                                   ' 6 digit Verification Code',
                               validator: (val) {
@@ -269,7 +269,16 @@ class _EmailVerificationScreenState
                             Center(
                                 child: AppButton(
                                     onPressed: () {
-                                      context.go('/login');
+                                      FocusManager
+                                          .instance.primaryFocus
+                                          ?.unfocus();
+                                      if (model
+                                          .formKey.currentState!
+                                          .validate()) {
+                                        model.processEmailVerify(
+                                            widget.email,
+                                            context);
+                                      }
                                     },
                                     text: 'Verify')),
                             const SizedBox(height: 30),

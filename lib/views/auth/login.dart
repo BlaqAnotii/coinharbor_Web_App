@@ -281,8 +281,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 30),
                             Input(
-                              //   controller:
-                              //       model.email,
+                                controller:
+                                    model.emailLogin,
                               label: 'Email',
                               validator: (val) {
                                 if (val!.isEmpty) {
@@ -299,8 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                                 return null;
                               },
-                              //   controller:
-                              //       model.password,
+                                controller:
+                                    model.passwordLogin,
                               suffixIcon: const Icon(
                                   Icons.visibility_off_outlined),
                               label: 'Password',
@@ -309,7 +309,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 30),
                             Center(
                                 child: AppButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      FocusManager
+                                                  .instance
+                                                  .primaryFocus
+                                                  ?.unfocus();
+                                              if (model.formKey
+                                                  .currentState!
+                                                  .validate()) {
+                                                model
+                                                    .processLogin(
+                                                        context);
+                                              }
+                                    },
                                     text: 'Login')),
                             const SizedBox(height: 20),
                             InkWell(
