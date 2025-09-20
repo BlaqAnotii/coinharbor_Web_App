@@ -94,6 +94,63 @@ class AuthViewModel extends BaseViewModel {
     }
   }
 
+  Future processForgotPassword(BuildContext context) async {
+    try {
+      startLoader();
+      var data = {
+        "user_email": emailLogin.text,
+      };
+
+      print(
+          "Request Payload: $data"); // 👈 Added print statement
+
+      var response = await authRepo.forgotpassword(data);
+
+      if (response != null) {
+        //await userService.initializer();
+        showCustomToast("Verification Code Sent",
+            toastType: ToastType.success);
+        stopLoader();
+        context.go('/reset-password');
+      } else {
+        stopLoader();
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processResetPassword(BuildContext context) async {
+    try {
+      startLoader();
+      var data = {
+        "otp": otp.text,
+        "new_password": passwordLogin.text,
+      };
+
+      print(
+          "Request Payload: $data"); // 👈 Added print statement
+
+      var response = await authRepo.resetpassword(data);
+
+      if (response != null) {
+        //await userService.initializer();
+        showCustomToast("Password Reset is Successful",
+            toastType: ToastType.success);
+        stopLoader();
+        context.go('/login');
+      } else {
+        stopLoader();
+      }
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
   Future processResendVerifyEmail(String emailVal) async {
     try {
       startLoader();

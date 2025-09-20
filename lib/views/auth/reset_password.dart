@@ -9,23 +9,23 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState
-    extends State<ForgotPasswordScreen> {
+class _ResetPasswordScreenState
+    extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
     return BaseView<AuthViewModel>(onModelReady: (model) {
       debugPrint("Alladu======");
-      model.setAppTitle('Forgot Password');
+      model.setAppTitle('Reset Password');
     }, builder: (context, model, child) {
       return Scaffold(
         body: Container(
@@ -65,7 +65,7 @@ class _ForgotPasswordScreenState
                                     ),
                                     const SizedBox(height: 88),
                                     const Text(
-                                      "Forget Password",
+                                      "Reset Password",
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight:
@@ -75,7 +75,7 @@ class _ForgotPasswordScreenState
                                     ),
                                     const SizedBox(height: 8),
                                     const Text(
-                                      "Enter Email to receive verification code",
+                                      "Enter code to reset code",
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Color(0xff000000),
@@ -88,15 +88,36 @@ class _ForgotPasswordScreenState
                                           maxWidth: 400),
                                       height: 50.0,
                                       child: Input(
-                                        controller:
-                                            model.emailLogin,
-                                        label: 'Email',
+                                        controller: model.otp,
+                                        label:
+                                            'Enter 6 digit verification code',
                                         validator: (val) {
                                           if (val!.isEmpty) {
-                                            return 'Enter email';
+                                            return 'Enter code';
                                           }
                                           return null;
                                         },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    SizedBox(
+                                      width: CalcWidth(
+                                          context, 150,
+                                          maxWidth: 400),
+                                      height: 50.0,
+                                      child: Input(
+                                        validator: (val) {
+                                          if (val!.isEmpty) {
+                                            return 'Enter password';
+                                          }
+                                          return null;
+                                        },
+                                        controller:
+                                            model.passwordLogin,
+                                        suffixIcon: const Icon(Icons
+                                            .visibility_off_outlined),
+                                        label: 'New Password',
+                                        isPassword: true,
                                       ),
                                     ),
                                     const SizedBox(height: 30),
@@ -107,7 +128,7 @@ class _ForgotPasswordScreenState
                                               maxWidth: 390),
                                           height: 50.0,
                                           child: AppButton(
-                                            text: 'Proceed',
+                                            text: 'Reset',
                                             onPressed: () {
                                               FocusManager
                                                   .instance
@@ -117,7 +138,7 @@ class _ForgotPasswordScreenState
                                                   .currentState!
                                                   .validate()) {
                                                 model
-                                                    .processForgotPassword(
+                                                    .processResetPassword(
                                                         context);
                                               }
                                             },
@@ -138,7 +159,7 @@ class _ForgotPasswordScreenState
                                             Text.rich(
                                               TextSpan(
                                                 text:
-                                                    "Return back?          ",
+                                                    "Return to login?          ",
                                                 style:
                                                     const TextStyle(
                                                   color: Color(
@@ -147,7 +168,7 @@ class _ForgotPasswordScreenState
                                                 children: [
                                                   TextSpan(
                                                     text:
-                                                        "Login",
+                                                        "Sign In",
                                                     recognizer:
                                                         TapGestureRecognizer()
                                                           ..onTap =
@@ -225,7 +246,7 @@ class _ForgotPasswordScreenState
                               height: size.height * 0.03,
                             ),
                             const Text(
-                              "Forget Password",
+                              "Reset Password",
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -234,7 +255,7 @@ class _ForgotPasswordScreenState
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              "Enter Email to receive verification code",
+                              "Enter code to reset code",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xff000000),
@@ -242,34 +263,48 @@ class _ForgotPasswordScreenState
                             ),
                             const SizedBox(height: 30),
                             Input(
-                                controller:
-                                    model.emailLogin,
-                              label: 'Email',
+                              // controller:
+                              //     model.otp,
+                              label: '6 digit verification code',
                               validator: (val) {
                                 if (val!.isEmpty) {
-                                  return 'Enter email';
+                                  return 'Enter code';
                                 }
                                 return null;
                               },
+                            ),
+                            const SizedBox(height: 20),
+                            Input(
+                              validator: (val) {
+                                if (val!.isEmpty) {
+                                  return 'Enter password';
+                                }
+                                return null;
+                              },
+                              controller:
+                                  model.passwordLogin,
+                              suffixIcon: const Icon(
+                                  Icons.visibility_off_outlined),
+                              label: 'New Password',
+                              isPassword: true,
                             ),
                             const SizedBox(height: 30),
                             Center(
                                 child: AppButton(
                                     onPressed: () {
-                                        FocusManager
-                                                  .instance
-                                                  .primaryFocus
-                                                  ?.unfocus();
-                                              if (model.formKey
-                                                  .currentState!
-                                                  .validate()) {
-                                                model
-                                                    .processForgotPassword(
-                                                        context);
-                                              }
+                                      // FocusManager
+                                      //             .instance
+                                      //             .primaryFocus
+                                      //             ?.unfocus();
+                                      //         if (model.formKey
+                                      //             .currentState!
+                                      //             .validate()) {
+                                      //           model
+                                      //               .processLogin(
+                                      //                   context);
+                                      //         }
                                     },
-                                    text: 'Proceed')),
-                            const SizedBox(height: 20),
+                                    text: 'Reset')),
                             const SizedBox(height: 30),
                             Row(
                               mainAxisAlignment:
@@ -279,13 +314,13 @@ class _ForgotPasswordScreenState
                               children: [
                                 Text.rich(
                                   TextSpan(
-                                    text: "Return back? ",
+                                    text: "Return to Login? ",
                                     style: const TextStyle(
                                       color: Color(0xff000000),
                                     ),
                                     children: [
                                       TextSpan(
-                                        text: "Login",
+                                        text: "Sign In",
                                         recognizer:
                                             TapGestureRecognizer()
                                               ..onTap = () {

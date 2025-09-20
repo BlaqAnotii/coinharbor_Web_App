@@ -16,7 +16,8 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:oktoast/oktoast.dart';
-
+import 'dart:html' as html;
+import 'dart:js' as js;
 import 'services/locator.dart';
 import 'services/navigation_service.dart';
 
@@ -108,6 +109,39 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>();
+
+  bool _chatLoaded = false;
+  bool _chatOpen = false;
+
+  void _toggleChat() {
+    if (!_chatLoaded) {
+      // Inject Tawk.to script once
+      final script = html.ScriptElement()
+        ..id = "tawk-script"
+        ..src =
+            'https://embed.tawk.to/68ce5320f6dadc19215a519c/1j5iv9es8' // replace with your Tawk.to link
+        ..async = true;
+      html.document.body?.append(script);
+
+      // Mark as loaded
+      setState(() => _chatLoaded = true);
+
+      // Open after load
+      Future.delayed(const Duration(seconds: 2), () {
+        js.context.callMethod('eval', ['Tawk_API.maximize();']);
+        setState(() => _chatOpen = true);
+      });
+    } else {
+      // Toggle open/close using Tawk API
+      if (_chatOpen) {
+        js.context.callMethod('eval', ['Tawk_API.minimize();']);
+      } else {
+        js.context.callMethod('eval', ['Tawk_API.maximize();']);
+      }
+      setState(() => _chatOpen = !_chatOpen);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
@@ -209,14 +243,19 @@ class _MyHomePageState extends State<MyHomePage> {
           : null,
       body: const WelcomeScreen(),
       floatingActionButton: InkWell(
-        onTap: () {},
-        child: const CircleAvatar(
+        onTap: _toggleChat,
+        child: CircleAvatar(
           backgroundColor: AppColors.primary,
           radius: 30,
-          child: Icon(
-            Iconsax.message5,
-            color: AppColors.white,
-          ),
+          child: _chatOpen
+              ? const Icon(
+                  Icons.close,
+                  color: AppColors.white,
+                )
+              : const Icon(
+                  Iconsax.message5,
+                  color: AppColors.white,
+                ),
         ),
       ),
     );

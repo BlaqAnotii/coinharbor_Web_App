@@ -3,6 +3,7 @@ import 'package:coinharbor/views/auth/create_account.dart';
 import 'package:coinharbor/views/auth/email_verification.dart';
 import 'package:coinharbor/views/auth/forgot_password.dart';
 import 'package:coinharbor/views/auth/login.dart';
+import 'package:coinharbor/views/auth/reset_password.dart';
 import 'package:coinharbor/views/welcome_screen.dart';
 import 'package:coinharbor/widgets/MenuController.dart'
     as mcontroller;
@@ -59,6 +60,12 @@ class AppRouteConfig {
         path: '/forgot-password',
         builder: (context, GoRouterState state) {
           return const ForgotPasswordScreen();
+        },
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, GoRouterState state) {
+          return const ResetPasswordScreen();
         },
       ),
 
