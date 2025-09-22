@@ -220,7 +220,7 @@ class AuthViewModel extends BaseViewModel {
         //   stopLoader();
         showCustomToast("Login successful",
             toastType: ToastType.success);
-        context.replace('/home');
+        context.replace('/homepage');
         // }
       } else {
         // Handle invalid or null response

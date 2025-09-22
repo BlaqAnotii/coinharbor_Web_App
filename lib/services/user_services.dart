@@ -3,8 +3,8 @@
 import 'package:coinharbor/config/urlPath.dart';
 import 'package:coinharbor/data/https.dart';
 import 'package:coinharbor/data/model/member_model.dart';
-import 'package:coinharbor/data/model/store_model.dart';
-import 'package:coinharbor/data/model/user_model.dart';
+import 'package:coinharbor/data/model/wallet_model.dart';
+import 'package:coinharbor/data/model/user_model.dart' hide Wallet;
 import 'package:flutter/material.dart';
 
 import 'app_cache.dart';
@@ -28,7 +28,7 @@ class UserServices extends ChangeNotifier {
 
     if (userToken != null) {
       authToken = userToken;
-      // cache.user = await getUserDetail();
+      cache.user = await getUserDetail();
       if (cache.user != null) {
         isUserLoggedIn = true;
       }
@@ -41,37 +41,79 @@ class UserServices extends ChangeNotifier {
     return await cache.clearPreference();
   }
 
-  // Future<User?> getUserDetail() async {
-  //   String? token = cache.getStringPreference('token');
-  //   // print('ECHO:::::::$token');
+  Future<User?> getUserDetail() async {
+    String? token = cache.getStringPreference('token');
 
-  //   try {
-  //     // var response = await dio.get(UrlPath.profile);
-  //     print('ECHO:::::::$token');
-  //     var response = await httpGet(UrlPath.profile,
-  //         hasAuth: true, token: token ?? "");
+    try {
+      print('ECHO:::::::$token');
+      var response = await httpGet(
+        UrlPath.getUser,
+        hasAuth: true,
+        token: token ?? "",
+      );
 
-  //     print("Response status: ${response.statusCode}");
-  //     print("Response data: ${response.data}");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
 
-  //     if (response.statusCode == 200 && response.data != null) {
-  //       // Ensure that the data contains the 'success' key
-  //       var successData = response.data['user'];
-  //       if (successData != null) {
-  //         notifyListeners();
-  //         return User.fromJson(successData);
-  //       } else {
-  //         print("No 'success' key found in the response");
-  //       }
-  //     } else {
-  //       print("Invalid response or status code not 200");
-  //     }
-  //   } catch (e, t) {
-  //     print(e);
-  //     print(t);
-  //     //throw Exception('An unknown error occurred: ${e.toString()}');
-  //   }
-  //   return null;
-  // }
+      final responseData = response.data;
+
+      if (responseData != null &&
+          responseData['status'] == true) {
+        var userData =
+            responseData['data']; // ✅ correct key is "data"
+        if (userData != null) {
+          notifyListeners();
+          return User.fromJson(userData);
+        } else {
+          print("No 'data' key found in the response");
+        }
+      } else {
+        print("Invalid response or status=false");
+      }
+    } catch (e, t) {
+      print("Error in getUserDetail: $e");
+      print(t);
+    }
+    return null;
+  }
+
+
+  Future<List<Wallet>> getWallet() async {
+    String? token = cache.getStringPreference('token');
+
+    try {
+      // var response = await dio.get(UrlPath.profile);
+      var response = await httpGet(UrlPath.getWallet,
+          hasAuth: true, token: token ?? "");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      final responseData = response.data;
+     if (responseData['status']==true) {
+        final data = responseData;
+
+        // Ensure "events" exists and is a List
+        if (data != null && data["data"] is List) {
+          final List userJson = data["data"] ?? [];
+
+          return userJson
+              .where(
+                  (e) => e != null && e is Map<String, dynamic>)
+              .map<Wallet>((e) =>
+                  Wallet.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+
+      // Return empty list if response is bad or no events found
+      return [];
+   
+    } catch (e, t) {
+      print(e);
+      print(t);
+      //throw Exception('An unknown error occurred: ${e.toString()}');
+    }
+    return [];
+  }
 
 }

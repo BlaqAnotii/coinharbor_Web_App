@@ -2,6 +2,7 @@ import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/widgets/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:iconsax/iconsax.dart';
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -73,6 +74,83 @@ class AppButton extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(100),
+              ),
+              child: button,
+            )
+          : button,
+    );
+  }
+}
+
+class AppButton3 extends StatelessWidget {
+  final String text;
+  final double? height;
+  final double? width;
+
+  final VoidCallback? onPressed;
+  final bool filled;
+  final bool disabled;
+  final Color? bg;
+  final Color? textColor;
+
+  const AppButton3({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.filled = true,
+    this.disabled = false,
+    this.bg,
+    this.textColor,
+    this.height,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool useGradient = filled && bg == null;
+    final Color fallbackBg = bg ?? const Color(0xFF8F07E7);
+    final Color foregroundColor = textColor ??
+        (filled ? Colors.white : const Color(0xFF8F07E7));
+
+    final button = ElevatedButton(
+      onPressed: disabled ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        fixedSize: const Size(65, 45),
+        elevation: 0,
+        backgroundColor: const Color(0xffFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+          const Icon(
+            Iconsax.arrow_right_1,
+            color: AppColors.primary,
+          ),
+        ],
+      ),
+    );
+
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height ?? 50,
+      child: useGradient
+          ? Container(
+              decoration: BoxDecoration(
+                color: const Color(0xffFFFFFF),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: button,
             )
