@@ -89,6 +89,95 @@ class AuthRepository {
     return responseData;
   }
 
+  Future convert(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.convert,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
+  Future transfer(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.transfer,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
+Future addWallet(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.addWallet,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
+  Future deposit(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.deposit,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
+  Future withdraw(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.withdraw,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
+
+
+
+
   Future login(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.login,

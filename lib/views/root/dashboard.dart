@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:coinharbor/controllers/auth_vm.dart';
 import 'package:coinharbor/controllers/home.vm.dart';
+import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/user_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
 import 'package:coinharbor/resources/colors.dart';
@@ -11,8 +13,11 @@ import 'package:coinharbor/widgets/app_buttons.dart';
 import 'package:coinharbor/widgets/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -50,6 +55,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final TextEditingController cryptoController =
       TextEditingController();
+  final TextEditingController amount = TextEditingController();
+  final TextEditingController depositAmount =
+      TextEditingController();
 
   double usdValue = 0.0;
 
@@ -57,7 +65,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Map<String, String>> cryptos = [
     {"id": "bitcoin", "symbol": "BTC"},
     {"id": "ethereum", "symbol": "ETH"},
-    {"id": "tether", "symbol": "USDT"},
+    {"id": "USDT", "symbol": "USDT"},
+  ];
+
+  String selectedCrypto2 = "bitcoin"; // default
+  final List<Map<String, String>> cryptos2 = [
+    {"id": "bitcoin", "symbol": "BTC"},
+    {"id": "ethereum", "symbol": "ETH"},
+    {"id": "USDT", "symbol": "USDT"},
+  ];
+
+  String selectedCrypto3 = "bitcoin"; // default
+  final List<Map<String, String>> cryptos3 = [
+    {"id": "bitcoin", "symbol": "BTC"},
+    {"id": "ethereum", "symbol": "ETH"},
+    {"id": "USDT", "symbol": "USDT"},
   ];
 
   Future<double> fetchCryptoPrice(String id) async {
@@ -90,6 +112,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    print('initState selectedCrypto2 = $selectedCrypto2');
+
     cryptoController
         .addListener(convert); // auto-update on typing
   }
@@ -100,16 +124,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  List<Transaction> transact = [];
+
+  Future<void> fetchTransaction(HomeViewModel model) async {
+    try {
+      List<Transaction> fetchedtrans =
+          await model.getAllTransaction();
+      setState(() {
+        transact = fetchedtrans;
+      });
+    } catch (e) {
+      debugPrint("Error fetching stores: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
     var mobile = ResponsiveWidget.isSmallScreen(context);
     var desktop = ResponsiveWidget.isLargeScreen(context);
 
+    print('BUILD: selectedCrypto2 = $selectedCrypto2');
+    print(
+        'BUILD: items = ${cryptos2.map((c) => c['id']).toList()}');
+
+    // before building dropdown, check membership
+    assert(cryptos2.any((c) => c['id'] == selectedCrypto2),
+        'selectedCrypto2 not in cryptos2 items!');
+
     return BaseView<HomeViewModel>(onModelReady: (model) {
       getUserDetails(model);
 
       loadwallets(model);
+      fetchTransaction(model);
     }, builder: (context, model, child) {
       return SingleChildScrollView(
         child: Padding(
@@ -218,7 +265,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           Text(
                                             (user == null)
                                                 ? '\$1.00'
-                                                : '\$${user!.fiatBalance.toStringAsFixed(2)}',
+                                                : NumberFormat
+                                                    .currency(
+                                                    locale:
+                                                        'en_US', // US formatting style
+                                                    symbol:
+                                                        '\$', // Currency symbol
+                                                  ).format(user!
+                                                    .fiatBalance),
                                             style:
                                                 const TextStyle(
                                               fontWeight:
@@ -548,16 +602,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 width: 0.3,
                                               ),
                                             ),
-                                            child: Padding(
+                                            child: const Padding(
                                               padding:
-                                                  const EdgeInsets
-                                                      .all(15.0),
+                                                  EdgeInsets.all(
+                                                      15.0),
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment
                                                         .center,
                                                 children: [
-                                                  const Text(
+                                                  Text(
                                                     'NO WALLET FOUND',
                                                     style:
                                                         TextStyle(
@@ -570,9 +624,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           .black87,
                                                     ),
                                                   ),
-                                                  const SizedBox(
+                                                  SizedBox(
                                                       height: 9),
-                                                  const Text(
+                                                  Text(
                                                     'Create Wallet', // 👈 dynamic currency name (BTC, ETH, USDT...)
                                                     style:
                                                         TextStyle(
@@ -580,35 +634,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           .grey,
                                                       fontSize:
                                                           14,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                      height:
-                                                          14),
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius
-                                                            .circular(
-                                                                40),
-                                                    child:
-                                                        LinearProgressIndicator(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              40),
-                                                      value:
-                                                          0.001, // 👉 you can replace with wallet.fiatBalance if needed
-                                                      minHeight:
-                                                          6,
-                                                      backgroundColor:
-                                                          Colors
-                                                              .grey
-                                                              .shade300,
-                                                      valueColor:
-                                                          const AlwaysStoppedAnimation<
-                                                              Color>(
-                                                        Colors
-                                                            .green,
-                                                      ),
                                                     ),
                                                   ),
                                                 ],
@@ -620,58 +645,203 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(
                               height: 15,
                             ),
-                            SizedBox(
-                              width: CalcWidth(context, 690,
-                                  maxWidth: 720),
-                              child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: CalcWidth(
-                                          context, 690,
-                                          maxWidth: 720),
-                                      height: 255.0,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius
-                                                  .circular(10),
-                                          border: Border.all(
-                                            color: AppColors
-                                                .foundationGreyLighter,
-                                            width: 0.3,
-                                          )),
-                                      child: const Padding(
-                                        padding:
-                                            EdgeInsets.all(10.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment
-                                                  .start,
-                                          children: [
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            Text(
-                                              'Recent Transactions',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                color:
-                                                    Colors.black,
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w800,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 20,
-                                            ),
-                                          ],
+                            Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.all(
+                                            10.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        const SizedBox(
+                                          height: 10,
                                         ),
-                                      ),
+                                        const Text(
+                                          'Recent Transactions',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            color: Colors.black,
+                                            fontWeight:
+                                                FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 20,
+                                        ),
+                                        Container(
+                                          decoration:
+                                              BoxDecoration(
+                                            color: AppColors
+                                                .white, // Background color
+                                            borderRadius:
+                                                BorderRadius
+                                                    .circular(
+                                                        10),
+                                            border: Border.all(
+                                              color: AppColors
+                                                  .foundationGreyLighter,
+                                              width: 0.3,
+                                            ),
+                                          ),
+                                          child: Theme(
+                                            data:
+                                                Theme.of(context)
+                                                    .copyWith(
+                                              cardColor:
+                                                  Colors.white,
+                                              dividerColor:
+                                                  Colors.grey,
+                                            ),
+                                            child: transact
+                                                    .isEmpty
+                                                ? const Center(
+                                                    child: Text(
+                                                        "No Transaction found"),
+                                                  )
+                                                : DataTable(
+                                                    headingRowColor:
+                                                        WidgetStateProperty
+                                                            .all(
+                                                      AppColors
+                                                          .background,
+                                                    ),
+                                                    dataRowHeight:
+                                                        50,
+                                                    columnSpacing:
+                                                        75,
+                                                    dividerThickness:
+                                                        0.1,
+                                                    columns: const [
+                                                      DataColumn(
+                                                        label:
+                                                            Text(
+                                                          'Type',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      DataColumn(
+                                                          label:
+                                                              Text(
+                                                        'Asset',
+                                                        style:
+                                                            TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )),
+                                                      DataColumn(
+                                                          label:
+                                                              Text(
+                                                        'Amount',
+                                                        style:
+                                                            TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )),
+                                                      DataColumn(
+                                                          label:
+                                                              Text(
+                                                        'Fiat Amount',
+                                                        style:
+                                                            TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )),
+                                                      DataColumn(
+                                                          label:
+                                                              Text(
+                                                        'Status',
+                                                        style:
+                                                            TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )),
+                                                    ],
+                                                    rows: transact
+                                                        .take(4) // 👈 only keep 4 transactions
+                                                        .map((members) {
+                                                      Color
+                                                          statusColor;
+                                                      switch (members
+                                                          .status
+                                                          .toLowerCase()) {
+                                                        case 'completed':
+                                                          statusColor =
+                                                              Colors.green;
+                                                          break;
+                                                        case 'pending':
+                                                          statusColor =
+                                                              Colors.orange;
+                                                          break;
+                                                        case 'failed':
+                                                          statusColor =
+                                                              Colors.red;
+                                                          break;
+                                                        default:
+                                                          statusColor =
+                                                              Colors.grey;
+                                                      }
+
+                                                      return DataRow(
+                                                        cells: [
+                                                          DataCell(Text(members.type.isNotEmpty
+                                                              ? members.type
+                                                              : '-')),
+                                                          DataCell(
+                                                            Text(
+                                                              members.asset,
+                                                              style: const TextStyle(
+                                                                fontWeight: FontWeight.w600,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          DataCell(Text(members
+                                                              .amount
+                                                              .toStringAsFixed(2))),
+                                                          DataCell(Text(members
+                                                              .fiatAmount
+                                                              .toStringAsFixed(2))),
+                                                          DataCell(
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(
+                                                                horizontal: 10,
+                                                                vertical: 6,
+                                                              ),
+                                                              decoration: BoxDecoration(
+                                                                color: statusColor.withOpacity(0.15),
+                                                                borderRadius: BorderRadius.circular(6),
+                                                              ),
+                                                              child: Text(
+                                                                members.status,
+                                                                style: TextStyle(
+                                                                  color: statusColor,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ]),
-                            )
+                                  ),
+                                ])
                           ],
                         ),
                         SizedBox(
@@ -720,7 +890,355 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               .spaceEvenly,
                                       children: [
                                         GestureDetector(
-                                            onTap: () {},
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext
+                                                        context) {
+                                                  // final cryptoAmount =
+                                                  //     cryptoController
+                                                  //         .text;
+                                                  //String tempValue = "bitcoin"; // local state
+
+                                                  return BaseView<
+                                                          HomeViewModel>(
+                                                      onModelReady:
+                                                          (model) {
+                                                    debugPrint(
+                                                        "Alladu======");
+                                                    model.setAppTitle(
+                                                        'Deposit');
+                                                  }, builder: (context,
+                                                          model,
+                                                          child) {
+                                                    return StatefulBuilder(builder:
+                                                        (context,
+                                                            setStateDialog) {
+                                                      return Padding(
+                                                        padding: const EdgeInsets
+                                                            .only(
+                                                            left:
+                                                                450,
+                                                            right:
+                                                                450),
+                                                        child:
+                                                            Container(
+                                                          padding: const EdgeInsets
+                                                              .all(
+                                                              10),
+                                                          margin: const EdgeInsets
+                                                              .only(
+                                                              top: 35,
+                                                              bottom: 60),
+                                                          height:
+                                                              300.w,
+                                                          width:
+                                                              300.w,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color:
+                                                                AppColors.white, // Background color
+                                                            borderRadius:
+                                                                BorderRadius.circular(10),
+                                                            border:
+                                                                const Border(
+                                                              top: BorderSide(
+                                                                color: AppColors.lightGrey, // Border color
+                                                                width: 1, // Border width
+                                                              ),
+                                                            ),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                                blurRadius: 3,
+                                                                offset: const Offset(0, 4),
+                                                                spreadRadius: 1,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          child:
+                                                              Padding(
+                                                            padding:
+                                                                const EdgeInsets.all(15),
+                                                            child:
+                                                                Form(
+                                                              // key:
+                                                              //     model.formKey,
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Deposit Cryptocurrency ',
+                                                                    style: TextStyle(
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight.w600,
+                                                                      color: AppColors.blacks,
+                                                                    ),
+                                                                  ),
+                                                                  75.0.sbH,
+                                                                  const Text(
+                                                                    'Deposit Amount',
+                                                                    style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      color: AppColors.foundationGreyLightActive,
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(height: 10),
+                                                                  Container(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                                                                    decoration: BoxDecoration(
+                                                                      color: AppColors.background,
+                                                                      borderRadius: BorderRadius.circular(10),
+                                                                    ),
+                                                                    child: Column(
+                                                                      children: [
+                                                                        const SizedBox(height: 8),
+                                                                        Row(
+                                                                          children: [
+                                                                            Expanded(
+                                                                              child: TextField(
+                                                                                controller: depositAmount,
+                                                                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                                                inputFormatters: [
+                                                                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                                                                ],
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 22,
+                                                                                  color: AppColors.black,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                ),
+                                                                                decoration: const InputDecoration(
+                                                                                  hint: Text('0', style: TextStyle(fontSize: 22, color: AppColors.black, fontWeight: FontWeight.w600)),
+                                                                                  border: InputBorder.none,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            IntrinsicWidth(
+                                                                              child: DropdownButtonHideUnderline(
+                                                                                child: DropdownButton<String>(
+                                                                                  isExpanded: true,
+                                                                                  dropdownColor: Colors.white,
+                                                                                  hint: const Text(
+                                                                                    'BTC',
+                                                                                    style: TextStyle(
+                                                                                      fontSize: 15,
+                                                                                      color: AppColors.black,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                    ),
+                                                                                  ),
+                                                                                  value: selectedCrypto3,
+                                                                                  icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                                  items: cryptos3.map((coin) {
+                                                                                    return DropdownMenuItem<String>(
+                                                                                      value: coin['id'],
+                                                                                      child: Text(
+                                                                                        coin['symbol']!,
+                                                                                        style: const TextStyle(
+                                                                                          fontSize: 15,
+                                                                                          color: AppColors.black,
+                                                                                          fontWeight: FontWeight.w600,
+                                                                                        ),
+                                                                                      ),
+                                                                                    );
+                                                                                  }).toList(),
+                                                                                  onChanged: (val) {
+                                                                                    print('onChanged fired with: $val');
+                                                                                    setStateDialog(() {
+                                                                                      // <-- use dialog's setState
+                                                                                      selectedCrypto3 = val!;
+                                                                                    });
+                                                                                    print('after setState selectedCrypto2 = $selectedCrypto2');
+                                                                                  },
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(height: 100),
+                                                                  AppButton(
+                                                                      text: 'Deposit',
+                                                                      onPressed: () {
+                                                                        if (depositAmount.text.isNotEmpty) {
+                                                                          showDialog(
+                                                                            context: context,
+                                                                            builder: (BuildContext context) {
+                                                                              return BaseView<HomeViewModel>(onModelReady: (model) {
+                                                                                debugPrint("Alladu======");
+                                                                                model.setAppTitle('Deposit');
+                                                                              }, builder: (context, model, child) {
+                                                                                final cryptox = depositAmount.text;
+                                                                                return Padding(
+                                                                                  padding: const EdgeInsets.only(left: 450, right: 450),
+                                                                                  child: Container(
+                                                                                    padding: const EdgeInsets.all(10),
+                                                                                    margin: const EdgeInsets.only(top: 35, bottom: 60),
+                                                                                    height: 300.w,
+                                                                                    width: 300.w,
+                                                                                    decoration: BoxDecoration(
+                                                                                      color: AppColors.white, // Background color
+                                                                                      borderRadius: BorderRadius.circular(10),
+                                                                                      border: const Border(
+                                                                                        top: BorderSide(
+                                                                                          color: AppColors.lightGrey, // Border color
+                                                                                          width: 1, // Border width
+                                                                                        ),
+                                                                                      ),
+                                                                                      boxShadow: [
+                                                                                        BoxShadow(
+                                                                                          color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                                                          blurRadius: 3,
+                                                                                          offset: const Offset(0, 4),
+                                                                                          spreadRadius: 1,
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                    child: Padding(
+                                                                                      padding: const EdgeInsets.all(15),
+                                                                                      child: Form(
+                                                                                        // key:
+                                                                                        //     model.formKey,
+                                                                                        child: Column(
+                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                          children: [
+                                                                                            const Text(
+                                                                                              'Confirm Deposit',
+                                                                                              style: TextStyle(
+                                                                                                fontSize: 18,
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                color: AppColors.blacks,
+                                                                                              ),
+                                                                                            ),
+                                                                                            75.0.sbH,
+                                                                                            const Center(
+                                                                                              child: Text(
+                                                                                                'You’re about to deposit',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16,
+                                                                                                  fontWeight: FontWeight.w500,
+                                                                                                  color: AppColors.foundationGreyLightActive,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                            const SizedBox(height: 10),
+                                                                                            // Center(
+                                                                                            //   child: Image.asset(
+                                                                                            //     widget.payCurrency['flag'],
+                                                                                            //     width: 40,
+                                                                                            //     height: 40,
+                                                                                            //   ),
+                                                                                            // ),
+                                                                                            const SizedBox(height: 15),
+                                                                                            Center(
+                                                                                              child: Text(
+                                                                                                '$cryptox $selectedCrypto3',
+                                                                                                style: const TextStyle(
+                                                                                                  fontSize: 18,
+                                                                                                  fontWeight: FontWeight.w600,
+                                                                                                  color: AppColors.primary,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+
+                                                                                            const SizedBox(height: 45),
+                                                                                            Container(
+                                                                                              padding: const EdgeInsets.all(10),
+                                                                                              decoration: BoxDecoration(
+                                                                                                color: AppColors.background,
+                                                                                                borderRadius: BorderRadius.circular(10),
+                                                                                              ),
+                                                                                              child: Column(
+                                                                                                children: [
+                                                                                                  const SizedBox(height: 10),
+                                                                                                  Row(
+                                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                    children: [
+                                                                                                      const Text(
+                                                                                                        'Service Fee',
+                                                                                                        style: TextStyle(
+                                                                                                          fontSize: 14,
+                                                                                                          fontWeight: FontWeight.w500,
+                                                                                                          color: AppColors.foundationGreyLightActive,
+                                                                                                        ),
+                                                                                                      ),
+                                                                                                      Container(
+                                                                                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                                                                                        decoration: BoxDecoration(
+                                                                                                          color: Colors.green.shade100,
+                                                                                                          borderRadius: BorderRadius.circular(12),
+                                                                                                        ),
+                                                                                                        child: const Text(
+                                                                                                          'Zero Fees',
+                                                                                                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                                                                                                        ),
+                                                                                                      ),
+                                                                                                    ],
+                                                                                                  ),
+                                                                                                  const SizedBox(height: 13),
+                                                                                                  Row(
+                                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                    children: [
+                                                                                                      const Text(
+                                                                                                        'Total',
+                                                                                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.foundationGreyLightActive),
+                                                                                                      ),
+                                                                                                      Text(
+                                                                                                        '$cryptox $selectedCrypto3',
+                                                                                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.black),
+                                                                                                      ),
+                                                                                                    ],
+                                                                                                  ),
+                                                                                                ],
+                                                                                              ),
+                                                                                            ),
+                                                                                            const SizedBox(height: 100),
+                                                                                            AppButton(
+                                                                                                text: 'Confirm',
+                                                                                                onPressed: () {
+                                                                                                  if (selectedCrypto3.isNotEmpty && cryptox.isNotEmpty) {
+                                                                                                    model.processDeposit(
+                                                                                                      context,
+                                                                                                      selectedCrypto3,
+                                                                                                      cryptox,
+                                                                                                    );
+                                                                                                  } else {
+                                                                                                    showCustomToast(
+                                                                                                      'Transaction Failed',
+                                                                                                      toastType: ToastType.error,
+                                                                                                    );
+                                                                                                  }
+                                                                                                }),
+                                                                                          ],
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                );
+                                                                              });
+                                                                            },
+                                                                          );
+                                                                        } else {
+                                                                          showCustomToast(
+                                                                            'Enter Crypto Amount',
+                                                                            toastType: ToastType.info,
+                                                                          );
+                                                                        }
+                                                                      }),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    });
+                                                  });
+                                                },
+                                              );
+                                            },
                                             child: _buildActionButton(
                                                 'assets/images/payment.png',
                                                 'Receive')),
@@ -733,15 +1251,550 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                         ),
                                         GestureDetector(
-                                          onTap: () {},
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder:
+                                                  (BuildContext
+                                                      context) {
+                                                // final cryptoAmount =
+                                                //     cryptoController
+                                                //         .text;
+                                                //String tempValue = "bitcoin"; // local state
+
+                                                return BaseView<
+                                                        HomeViewModel>(
+                                                    onModelReady:
+                                                        (model) {
+                                                  debugPrint(
+                                                      "Alladu======");
+                                                  model.setAppTitle(
+                                                      'Add Wallet');
+                                                }, builder: (context,
+                                                        model,
+                                                        child) {
+                                                  return StatefulBuilder(
+                                                      builder:
+                                                          (context,
+                                                              setStateDialog) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets
+                                                          .only(
+                                                          left:
+                                                              450,
+                                                          right:
+                                                              450),
+                                                      child:
+                                                          Container(
+                                                        padding: const EdgeInsets
+                                                            .all(
+                                                            10),
+                                                        margin: const EdgeInsets
+                                                            .only(
+                                                            top:
+                                                                35,
+                                                            bottom:
+                                                                60),
+                                                        height:
+                                                            300.w,
+                                                        width:
+                                                            300.w,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              AppColors.white, // Background color
+                                                          borderRadius:
+                                                              BorderRadius.circular(10),
+                                                          border:
+                                                              const Border(
+                                                            top:
+                                                                BorderSide(
+                                                              color: AppColors.lightGrey, // Border color
+                                                              width: 1, // Border width
+                                                            ),
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                              blurRadius: 3,
+                                                              offset: const Offset(0, 4),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child:
+                                                            Padding(
+                                                          padding: const EdgeInsets
+                                                              .all(
+                                                              15),
+                                                          child:
+                                                              Form(
+                                                            // key:
+                                                            //     model.formKey,
+                                                            child:
+                                                                Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                const Text(
+                                                                  'Create Wallet',
+                                                                  style: TextStyle(
+                                                                    fontSize: 18,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: AppColors.blacks,
+                                                                  ),
+                                                                ),
+                                                                75.0.sbH,
+                                                                const Text(
+                                                                  'Select Currency',
+                                                                  style: TextStyle(
+                                                                    fontSize: 14,
+                                                                    fontWeight: FontWeight.w500,
+                                                                    color: AppColors.foundationGreyLightActive,
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                Container(
+                                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                                                                  decoration: BoxDecoration(
+                                                                    color: AppColors.background,
+                                                                    borderRadius: BorderRadius.circular(30),
+                                                                  ),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      const SizedBox(height: 8),
+                                                                      DropdownButtonHideUnderline(
+                                                                        child: DropdownButton<String>(
+                                                                          isExpanded: true,
+                                                                          dropdownColor: Colors.white,
+                                                                          hint: const Text(
+                                                                            'BTC',
+                                                                            style: TextStyle(
+                                                                              fontSize: 15,
+                                                                              color: AppColors.black,
+                                                                              fontWeight: FontWeight.w600,
+                                                                            ),
+                                                                          ),
+                                                                          value: model.selectedCrypto,
+                                                                          icon: const Icon(
+                                                                            Iconsax.arrow_down_1,
+                                                                            color: Color(0xff161616),
+                                                                            size: 16,
+                                                                          ),
+                                                                          items: model.cryptos.map((coin) {
+                                                                            return DropdownMenuItem<String>(
+                                                                              value: coin['id'],
+                                                                              child: Text(
+                                                                                coin['symbol']!,
+                                                                                style: const TextStyle(
+                                                                                  fontSize: 15,
+                                                                                  color: AppColors.black,
+                                                                                  fontWeight: FontWeight.w600,
+                                                                                ),
+                                                                              ),
+                                                                            );
+                                                                          }).toList(),
+                                                                          onChanged: (val) {
+                                                                            print('onChanged fired with: $val');
+                                                                            setStateDialog(() {
+                                                                              // <-- use dialog's setState
+                                                                              model.selectedCrypto = val!;
+                                                                            });
+                                                                            print('after setState selectedCrypto2 = $selectedCrypto2');
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 100),
+                                                                AppButton(
+                                                                  text: 'Create Wallet',
+                                                                  onPressed: () {
+                                                                    if (model.selectedCrypto.isNotEmpty) {
+                                                                      model.processAddWallet(
+                                                                        context,
+                                                                      );
+                                                                    } else {
+                                                                      showCustomToast(
+                                                                        'Please Select Currency',
+                                                                        toastType: ToastType.info,
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  });
+                                                });
+                                              },
+                                            );
+                                          },
                                           child:
                                               _buildActionButton(
                                             'assets/images/exchange.png',
-                                            'Convert',
+                                            'Add Wallet',
                                           ),
                                         ),
                                         GestureDetector(
-                                          onTap: () {},
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder:
+                                                  (BuildContext
+                                                      context) {
+                                                // final cryptoAmount =
+                                                //     cryptoController
+                                                //         .text;
+                                                //String tempValue = "bitcoin"; // local state
+
+                                                return BaseView<
+                                                        HomeViewModel>(
+                                                    onModelReady:
+                                                        (model) {
+                                                  debugPrint(
+                                                      "Alladu======");
+                                                  model.setAppTitle(
+                                                      'Transfer');
+                                                }, builder: (context,
+                                                        model,
+                                                        child) {
+                                                  return StatefulBuilder(
+                                                      builder:
+                                                          (context,
+                                                              setStateDialog) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets
+                                                          .only(
+                                                          left:
+                                                              450,
+                                                          right:
+                                                              450),
+                                                      child:
+                                                          Container(
+                                                        padding: const EdgeInsets
+                                                            .all(
+                                                            10),
+                                                        margin: const EdgeInsets
+                                                            .only(
+                                                            top:
+                                                                35,
+                                                            bottom:
+                                                                60),
+                                                        height:
+                                                            300.w,
+                                                        width:
+                                                            300.w,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              AppColors.white, // Background color
+                                                          borderRadius:
+                                                              BorderRadius.circular(10),
+                                                          border:
+                                                              const Border(
+                                                            top:
+                                                                BorderSide(
+                                                              color: AppColors.lightGrey, // Border color
+                                                              width: 1, // Border width
+                                                            ),
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                              blurRadius: 3,
+                                                              offset: const Offset(0, 4),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child:
+                                                            Padding(
+                                                          padding: const EdgeInsets
+                                                              .all(
+                                                              15),
+                                                          child:
+                                                              Form(
+                                                            // key:
+                                                            //     model.formKey,
+                                                            child:
+                                                                Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                const Text(
+                                                                  'Transfer to Trade Account',
+                                                                  style: TextStyle(
+                                                                    fontSize: 18,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: AppColors.blacks,
+                                                                  ),
+                                                                ),
+                                                                75.0.sbH,
+                                                                const Text(
+                                                                  'Amount to Transfer',
+                                                                  style: TextStyle(
+                                                                    fontSize: 14,
+                                                                    fontWeight: FontWeight.w500,
+                                                                    color: AppColors.foundationGreyLightActive,
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                Container(
+                                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                                                                  decoration: BoxDecoration(
+                                                                    color: AppColors.background,
+                                                                    borderRadius: BorderRadius.circular(10),
+                                                                  ),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      const SizedBox(height: 8),
+                                                                      Row(
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child: TextField(
+                                                                              controller: amount,
+                                                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                                                              inputFormatters: [
+                                                                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                                                              ],
+                                                                              style: const TextStyle(
+                                                                                fontSize: 22,
+                                                                                color: AppColors.black,
+                                                                                fontWeight: FontWeight.w600,
+                                                                              ),
+                                                                              decoration: const InputDecoration(
+                                                                                hint: Text('0', style: TextStyle(fontSize: 22, color: AppColors.black, fontWeight: FontWeight.w600)),
+                                                                                border: InputBorder.none,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          IntrinsicWidth(
+                                                                            child: DropdownButtonHideUnderline(
+                                                                              child: DropdownButton<String>(
+                                                                                isExpanded: true,
+                                                                                dropdownColor: Colors.white,
+                                                                                hint: const Text(
+                                                                                  'BTC',
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 15,
+                                                                                    color: AppColors.black,
+                                                                                    fontWeight: FontWeight.w600,
+                                                                                  ),
+                                                                                ),
+                                                                                value: selectedCrypto2,
+                                                                                icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                                items: cryptos2.map((coin) {
+                                                                                  return DropdownMenuItem<String>(
+                                                                                    value: coin['id'],
+                                                                                    child: Text(
+                                                                                      coin['symbol']!,
+                                                                                      style: const TextStyle(
+                                                                                        fontSize: 15,
+                                                                                        color: AppColors.black,
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                }).toList(),
+                                                                                onChanged: (val) {
+                                                                                  print('onChanged fired with: $val');
+                                                                                  setStateDialog(() {
+                                                                                    // <-- use dialog's setState
+                                                                                    selectedCrypto2 = val!;
+                                                                                  });
+                                                                                  print('after setState selectedCrypto2 = $selectedCrypto2');
+                                                                                },
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 100),
+                                                                AppButton(
+                                                                    text: 'Transfer',
+                                                                    onPressed: () {
+                                                                      if (amount.text.isNotEmpty) {
+                                                                        showDialog(
+                                                                          context: context,
+                                                                          builder: (BuildContext context) {
+                                                                            return BaseView<HomeViewModel>(onModelReady: (model) {
+                                                                              debugPrint("Alladu======");
+                                                                              model.setAppTitle('Transfer');
+                                                                            }, builder: (context, model, child) {
+                                                                              final cryptoamount = amount.text;
+                                                                              return Padding(
+                                                                                padding: const EdgeInsets.only(left: 450, right: 450),
+                                                                                child: Container(
+                                                                                  padding: const EdgeInsets.all(10),
+                                                                                  margin: const EdgeInsets.only(top: 35, bottom: 60),
+                                                                                  height: 300.w,
+                                                                                  width: 300.w,
+                                                                                  decoration: BoxDecoration(
+                                                                                    color: AppColors.white, // Background color
+                                                                                    borderRadius: BorderRadius.circular(10),
+                                                                                    border: const Border(
+                                                                                      top: BorderSide(
+                                                                                        color: AppColors.lightGrey, // Border color
+                                                                                        width: 1, // Border width
+                                                                                      ),
+                                                                                    ),
+                                                                                    boxShadow: [
+                                                                                      BoxShadow(
+                                                                                        color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                                                        blurRadius: 3,
+                                                                                        offset: const Offset(0, 4),
+                                                                                        spreadRadius: 1,
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                  child: Padding(
+                                                                                    padding: const EdgeInsets.all(15),
+                                                                                    child: Form(
+                                                                                      // key:
+                                                                                      //     model.formKey,
+                                                                                      child: Column(
+                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                        children: [
+                                                                                          const Text(
+                                                                                            'Confirm Transfer',
+                                                                                            style: TextStyle(
+                                                                                              fontSize: 18,
+                                                                                              fontWeight: FontWeight.w600,
+                                                                                              color: AppColors.blacks,
+                                                                                            ),
+                                                                                          ),
+                                                                                          75.0.sbH,
+                                                                                          const Center(
+                                                                                            child: Text(
+                                                                                              'You’re about to transfer',
+                                                                                              style: TextStyle(
+                                                                                                fontSize: 16,
+                                                                                                fontWeight: FontWeight.w500,
+                                                                                                color: AppColors.foundationGreyLightActive,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 10),
+                                                                                          // Center(
+                                                                                          //   child: Image.asset(
+                                                                                          //     widget.payCurrency['flag'],
+                                                                                          //     width: 40,
+                                                                                          //     height: 40,
+                                                                                          //   ),
+                                                                                          // ),
+                                                                                          const SizedBox(height: 15),
+                                                                                          Center(
+                                                                                            child: Text(
+                                                                                              '$cryptoamount $selectedCrypto2',
+                                                                                              style: const TextStyle(
+                                                                                                fontSize: 18,
+                                                                                                fontWeight: FontWeight.w600,
+                                                                                                color: AppColors.primary,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+
+                                                                                          const SizedBox(height: 45),
+                                                                                          Container(
+                                                                                            padding: const EdgeInsets.all(10),
+                                                                                            decoration: BoxDecoration(
+                                                                                              color: AppColors.background,
+                                                                                              borderRadius: BorderRadius.circular(10),
+                                                                                            ),
+                                                                                            child: Column(
+                                                                                              children: [
+                                                                                                const SizedBox(height: 10),
+                                                                                                Row(
+                                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                  children: [
+                                                                                                    const Text(
+                                                                                                      'Service Fee',
+                                                                                                      style: TextStyle(
+                                                                                                        fontSize: 14,
+                                                                                                        fontWeight: FontWeight.w500,
+                                                                                                        color: AppColors.foundationGreyLightActive,
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                    Container(
+                                                                                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                                                                                      decoration: BoxDecoration(
+                                                                                                        color: Colors.green.shade100,
+                                                                                                        borderRadius: BorderRadius.circular(12),
+                                                                                                      ),
+                                                                                                      child: const Text(
+                                                                                                        'Zero Fees',
+                                                                                                        style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ],
+                                                                                                ),
+                                                                                                const SizedBox(height: 13),
+                                                                                                Row(
+                                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                  children: [
+                                                                                                    const Text(
+                                                                                                      'Total',
+                                                                                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.foundationGreyLightActive),
+                                                                                                    ),
+                                                                                                    Text(
+                                                                                                      '$cryptoamount $selectedCrypto2',
+                                                                                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.black),
+                                                                                                    ),
+                                                                                                  ],
+                                                                                                ),
+                                                                                              ],
+                                                                                            ),
+                                                                                          ),
+                                                                                          const SizedBox(height: 100),
+                                                                                          AppButton(
+                                                                                              text: 'Confirm',
+                                                                                              onPressed: () {
+                                                                                                if (selectedCrypto2.isNotEmpty && cryptoamount.isNotEmpty) {
+                                                                                                  model.processTransfer(
+                                                                                                    context,
+                                                                                                    selectedCrypto2,
+                                                                                                    cryptoamount,
+                                                                                                  );
+                                                                                                } else {
+                                                                                                  showCustomToast(
+                                                                                                    'Transaction Failed',
+                                                                                                    toastType: ToastType.error,
+                                                                                                  );
+                                                                                                }
+                                                                                              }),
+                                                                                        ],
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              );
+                                                                            });
+                                                                          },
+                                                                        );
+                                                                      } else {
+                                                                        showCustomToast(
+                                                                          'Enter Crypto Amount',
+                                                                          toastType: ToastType.info,
+                                                                        );
+                                                                      }
+                                                                    }),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  });
+                                                });
+                                              },
+                                            );
+                                          },
                                           child: _buildActionButton(
                                               'assets/images/send.png',
                                               'Transfer'),
@@ -946,7 +1999,211 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Center(
                                       child: AppButton(
                                           width: 180,
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            if (cryptoController
+                                                .text
+                                                .isNotEmpty) {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext
+                                                        context) {
+                                                  final cryptoAmount =
+                                                      cryptoController
+                                                          .text;
+                                                  return BaseView<
+                                                          HomeViewModel>(
+                                                      onModelReady:
+                                                          (model) {
+                                                    debugPrint(
+                                                        "Alladu======");
+                                                    model.setAppTitle(
+                                                        'Convert');
+                                                  }, builder: (context,
+                                                          model,
+                                                          child) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets
+                                                          .only(
+                                                          left:
+                                                              450,
+                                                          right:
+                                                              450),
+                                                      child:
+                                                          Container(
+                                                        padding: const EdgeInsets
+                                                            .all(
+                                                            10),
+                                                        margin: const EdgeInsets
+                                                            .only(
+                                                            top:
+                                                                35,
+                                                            bottom:
+                                                                60),
+                                                        height:
+                                                            300.w,
+                                                        width:
+                                                            300.w,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              AppColors.white, // Background color
+                                                          borderRadius:
+                                                              BorderRadius.circular(10),
+                                                          border:
+                                                              const Border(
+                                                            top:
+                                                                BorderSide(
+                                                              color: AppColors.lightGrey, // Border color
+                                                              width: 1, // Border width
+                                                            ),
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors.grey.withOpacity(0.5), // Light shadow
+                                                              blurRadius: 3,
+                                                              offset: const Offset(0, 4),
+                                                              spreadRadius: 1,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child:
+                                                            Padding(
+                                                          padding: const EdgeInsets
+                                                              .all(
+                                                              15),
+                                                          child:
+                                                              Form(
+                                                            // key:
+                                                            //     model.formKey,
+                                                            child:
+                                                                Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                const Text(
+                                                                  'Confirm Exchange',
+                                                                  style: TextStyle(
+                                                                    fontSize: 18,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: AppColors.blacks,
+                                                                  ),
+                                                                ),
+                                                                75.0.sbH,
+                                                                const Center(
+                                                                  child: Text(
+                                                                    'You’re about to convert',
+                                                                    style: TextStyle(
+                                                                      fontSize: 16,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      color: AppColors.foundationGreyLightActive,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                // Center(
+                                                                //   child: Image.asset(
+                                                                //     widget.payCurrency['flag'],
+                                                                //     width: 40,
+                                                                //     height: 40,
+                                                                //   ),
+                                                                // ),
+                                                                const SizedBox(height: 15),
+                                                                Center(
+                                                                  child: Text(
+                                                                    '$cryptoAmount $selectedCrypto',
+                                                                    style: const TextStyle(
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight.w600,
+                                                                      color: AppColors.primary,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 5),
+                                                                Center(
+                                                                  child: Text(
+                                                                    'to \$${usdValue.toStringAsFixed(2)}',
+                                                                    style: const TextStyle(
+                                                                      fontSize: 18,
+                                                                      fontWeight: FontWeight.w600,
+                                                                      color: AppColors.black,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 45),
+                                                                Container(
+                                                                  padding: const EdgeInsets.all(10),
+                                                                  decoration: BoxDecoration(
+                                                                    color: AppColors.background,
+                                                                    borderRadius: BorderRadius.circular(10),
+                                                                  ),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      const SizedBox(height: 10),
+                                                                      Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          const Text(
+                                                                            'Service Fee',
+                                                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.foundationGreyLightActive),
+                                                                          ),
+                                                                          Container(
+                                                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                                                            decoration: BoxDecoration(
+                                                                              color: Colors.green.shade100,
+                                                                              borderRadius: BorderRadius.circular(12),
+                                                                            ),
+                                                                            child: const Text(
+                                                                              'Zero Fees',
+                                                                              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      const SizedBox(height: 13),
+                                                                      Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          const Text(
+                                                                            'Total',
+                                                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.foundationGreyLightActive),
+                                                                          ),
+                                                                          Text(
+                                                                            '$cryptoAmount $selectedCrypto',
+                                                                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.black),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 100),
+                                                                AppButton(
+                                                                    text: 'Confirm',
+                                                                    onPressed: () {
+                                                                      if (selectedCrypto.isNotEmpty && cryptoAmount.isNotEmpty) {
+                                                                        model.processConvert(context, selectedCrypto, cryptoAmount);
+                                                                      } else {
+                                                                        showCustomToast('Transaction Failed', toastType: ToastType.error);
+                                                                      }
+                                                                    }),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  });
+                                                },
+                                              );
+                                            } else {
+                                              showCustomToast(
+                                                'Enter Crypto Amount',
+                                                toastType:
+                                                    ToastType
+                                                        .info,
+                                              );
+                                            }
+                                          },
                                           text: 'Convert'),
                                     )
                                   ],
@@ -954,7 +2211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             const SizedBox(
-                              height: 53,
+                              height: 110,
                             ),
                           ],
                         )

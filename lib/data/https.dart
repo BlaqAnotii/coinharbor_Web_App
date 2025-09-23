@@ -128,46 +128,41 @@ Future<dynamic> httpPost2(String path, dynamic fData,
 Future<dynamic> httpPost3(
   String path,
   dynamic data, {
-  List<MapEntry<String, MultipartFile>>? mapEntry,
   bool hasAuth = false,
 }) async {
+  // Set headers
   if (hasAuth) {
-    dio.options.headers =
-        getHeaders(); // ✅ Only set auth header if required
+    dio.options.headers = getHeaders(); // includes Authorization
   } else {
     dio.options.headers = {
       "Accept": "application/json",
+      "Content-Type": "application/json", // force JSON
     };
   }
 
-  print("${Config.BASEAPI}$path");
+  print("POST: ${Config.BASEAPI}$path");
+  print("Payload: $data");
 
   try {
-    if (data is FormData) {
-      if (mapEntry != null) {
-        data.files.addAll(mapEntry);
-      }
-    } else {
-      data = FormData.fromMap(data);
-    }
+    // Encode data as JSON string
+    var response = await dio.post(
+      path,
+      data: jsonEncode(data),
+      options: Options(contentType: "application/json"),
+    );
 
-    print("CReatePlease:::::::$data");
-
-    var response = await dio.post(path, data: data);
-
-    print("CReatePleaseRess:::::::$response");
-
-    return response;
+    // Dio automatically parses JSON response
+    return response.data; // ✅ directly return Map
   } on DioException catch (err) {
-    print("error happening @ ${dio.options.baseUrl}$path");
+    print("Error @ ${dio.options.baseUrl}$path");
     handleError(err);
-    print(err);
     rethrow;
   } catch (err) {
     print(err);
     rethrow;
   }
 }
+
 
 Future<dynamic> httpPost4(
   String path,

@@ -256,17 +256,11 @@ class _ForgotPasswordScreenState
                             Center(
                                 child: AppButton(
                                     onPressed: () {
-                                        FocusManager
-                                                  .instance
-                                                  .primaryFocus
-                                                  ?.unfocus();
-                                              if (model.formKey
-                                                  .currentState!
-                                                  .validate()) {
+                                        
                                                 model
                                                     .processForgotPassword(
                                                         context);
-                                              }
+                                              
                                     },
                                     text: 'Proceed')),
                             const SizedBox(height: 20),

@@ -218,7 +218,8 @@ class AuthViewModel extends BaseViewModel {
         //   context.replace('/home');
         // } else {
         //   stopLoader();
-        showCustomToast("Login successful",
+        showCustomToast(
+            responseData['message'] ?? "Login successful",
             toastType: ToastType.success);
         context.replace('/homepage');
         // }

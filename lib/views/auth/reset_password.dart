@@ -263,8 +263,7 @@ class _ResetPasswordScreenState
                             ),
                             const SizedBox(height: 30),
                             Input(
-                              // controller:
-                              //     model.otp,
+                              controller: model.otp,
                               label: '6 digit verification code',
                               validator: (val) {
                                 if (val!.isEmpty) {
@@ -281,8 +280,7 @@ class _ResetPasswordScreenState
                                 }
                                 return null;
                               },
-                              controller:
-                                  model.passwordLogin,
+                              controller: model.passwordLogin,
                               suffixIcon: const Icon(
                                   Icons.visibility_off_outlined),
                               label: 'New Password',
@@ -303,6 +301,8 @@ class _ResetPasswordScreenState
                                       //               .processLogin(
                                       //                   context);
                                       //         }
+                                      model.processResetPassword(
+                                          context);
                                     },
                                     text: 'Reset')),
                             const SizedBox(height: 30),

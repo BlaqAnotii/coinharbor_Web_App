@@ -348,17 +348,11 @@ class _CreateAccountScreenState
                             Center(
                                 child: AppButton(
                                     onPressed: () {
-                                      FocusManager
-                                                  .instance
-                                                  .primaryFocus
-                                                  ?.unfocus();
-                                              if (model.formKey
-                                                  .currentState!
-                                                  .validate()) {
+                                    
                                                 model
                                                     .processSignUp(
                                                         context);
-                                              }
+                                              
                                     },
                                     text: 'Create Account')),
                             const SizedBox(height: 30),

@@ -269,16 +269,8 @@ class _EmailVerificationScreenState
                             Center(
                                 child: AppButton(
                                     onPressed: () {
-                                      FocusManager
-                                          .instance.primaryFocus
-                                          ?.unfocus();
-                                      if (model
-                                          .formKey.currentState!
-                                          .validate()) {
-                                        model.processEmailVerify(
-                                            widget.email,
-                                            context);
-                                      }
+                                      model.processEmailVerify(
+                                          widget.email, context);
                                     },
                                     text: 'Verify')),
                             const SizedBox(height: 30),
@@ -301,6 +293,10 @@ class _EmailVerificationScreenState
                                         recognizer:
                                             TapGestureRecognizer()
                                               ..onTap = () {
+                                                model
+                                                    .processResendVerifyEmail(
+                                                  widget.email,
+                                                );
                                                 // context.go(
                                                 //     '/login');
                                               },

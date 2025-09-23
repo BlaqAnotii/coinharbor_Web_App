@@ -2,7 +2,7 @@
 
 import 'package:coinharbor/config/urlPath.dart';
 import 'package:coinharbor/data/https.dart';
-import 'package:coinharbor/data/model/member_model.dart';
+import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
 import 'package:coinharbor/data/model/user_model.dart' hide Wallet;
 import 'package:flutter/material.dart';
@@ -115,5 +115,49 @@ class UserServices extends ChangeNotifier {
     }
     return [];
   }
+
+
+
+  Future<List<Transaction>> getTransaction() async {
+    String? token = cache.getStringPreference('token');
+
+    try {
+      // var response = await dio.get(UrlPath.profile);
+      var response = await httpGet(UrlPath.transactions,
+          hasAuth: true, token: token ?? "");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      final responseData = response.data;
+     if (responseData['status']==true) {
+        final data = responseData;
+
+        // Ensure "events" exists and is a List
+        if (data != null && data["data"] is List) {
+          final List userJson = data["data"] ?? [];
+
+          return userJson
+              .where(
+                  (e) => e != null && e is Map<String, dynamic>)
+              .map<Transaction>((e) =>
+                  Transaction.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+
+      // Return empty list if response is bad or no events found
+      return [];
+   
+    } catch (e, t) {
+      print(e);
+      print(t);
+      //throw Exception('An unknown error occurred: ${e.toString()}');
+    }
+    return [];
+  }
+
+
+
+  
 
 }
