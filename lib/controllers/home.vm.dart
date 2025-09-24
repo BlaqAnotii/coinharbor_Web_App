@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:coinharbor/controllers/base.vm.dart';
+import 'package:coinharbor/data/model/copy_trade_model.dart';
+import 'package:coinharbor/data/model/expert_model.dart';
+import 'package:coinharbor/data/model/investment_options_model.dart';
 import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/user_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
@@ -47,6 +50,48 @@ class HomeViewModel extends BaseViewModel {
     try {
       startLoader();
       var wallets = await userService.getTransaction();
+      stopLoader();
+      return wallets;
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+    return [];
+  }
+
+  Future<List<Expert>> getAllExperts() async {
+    try {
+      startLoader();
+      var wallets = await userService.getExperts();
+      stopLoader();
+      return wallets;
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+    return [];
+  }
+
+  Future<List<CopyTrade>> getAllCopy() async {
+    try {
+      startLoader();
+      var wallets = await userService.getCopy();
+      stopLoader();
+      return wallets;
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+    return [];
+  }
+
+  Future<List<InvestmentOption>> getAllInvOption() async {
+    try {
+      startLoader();
+      var wallets = await userService.getInvOptions();
       stopLoader();
       return wallets;
     } catch (e, l) {
@@ -143,6 +188,123 @@ class HomeViewModel extends BaseViewModel {
 
         showCustomToast(
           responseData['message'] ?? "Transfer is Successful",
+          toastType: ToastType.success,
+        );
+        context.pop();
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+          responseData['message'] ??
+              "Something went wrong. Please try again.",
+          toastType: ToastType.error,
+        );
+        context.pop();
+      }
+      stopLoader();
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processStartInvestment(BuildContext context, int optid,
+      String amount) async {
+    try {
+      startLoader();
+      var data = {
+        "option_id": optid,
+        "amount": amount,
+      };
+
+      print("Payload: $data");
+
+      var responseData = await authRepo.startInvestment(data);
+
+      if (responseData['status'] == true) {
+        print('CONTROLLER:::: $responseData');
+
+        showCustomToast(
+          responseData['message'] ?? "Successful Investment",
+          toastType: ToastType.success,
+        );
+        context.pop();
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+          responseData['message'] ??
+              "Something went wrong. Please try again.",
+          toastType: ToastType.error,
+        );
+        context.pop();
+      }
+      stopLoader();
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processCopyTrade(BuildContext context, int id,
+      String percent, String amount) async {
+    try {
+      startLoader();
+      var data = {
+        "trader_id": id,
+        "allocation_amount": amount,
+        "allocation_percent": percent
+      };
+
+      print("Payload: $data");
+
+      var responseData = await authRepo.copytrade(data);
+
+      if (responseData['status'] == true) {
+        print('CONTROLLER:::: $responseData');
+
+        showCustomToast(
+          responseData['message'] ?? "Copy Trade is Successful",
+          toastType: ToastType.success,
+        );
+        context.pop();
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+          responseData['message'] ??
+              "Something went wrong. Please try again.",
+          toastType: ToastType.error,
+        );
+        context.pop();
+      }
+      stopLoader();
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processstopCopyTrade(
+    BuildContext context,
+    int id,
+  ) async {
+    try {
+      startLoader();
+      var data = {"copy_id": id};
+
+      print("Payload: $data");
+
+      var responseData = await authRepo.stopcopytrade(data);
+
+      if (responseData['status'] == true) {
+        print('CONTROLLER:::: $responseData');
+
+        showCustomToast(
+          responseData['message'] ?? "Copy Trade is Stopped",
           toastType: ToastType.success,
         );
         context.pop();

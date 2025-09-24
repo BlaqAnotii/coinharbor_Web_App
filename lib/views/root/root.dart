@@ -4,7 +4,10 @@ import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/utils/snack_message.dart';
 import 'package:coinharbor/utils/widget_extensions.dart';
 import 'package:coinharbor/views/base.dart';
+import 'package:coinharbor/views/root/account.dart';
+import 'package:coinharbor/views/root/copy_trade.dart';
 import 'package:coinharbor/views/root/dashboard.dart';
+import 'package:coinharbor/views/root/investments.dart';
 import 'package:coinharbor/views/root/transactions.dart';
 import 'package:coinharbor/widgets/responsive.dart';
 import 'package:flutter/material.dart';
@@ -27,11 +30,17 @@ class _RootScreenState extends State<RootScreen> {
   final List<String> menus = [
     "Dashboard",
     "Transactions",
+    "Copy Trade",
+    "Investments",
+    "Account",
   ];
 
   final Map<String, Widget> menuPages = {
     "Dashboard": const DashboardScreen(),
     "Transactions": const TransactionsScreen(),
+    "Copy Trade": const CopyTradeScreen(),
+    "Investments": const InvestmentsScreen(),
+    "Account": const AccountScreen(),
   };
 
   @override
@@ -127,6 +136,32 @@ class _RootScreenState extends State<RootScreen> {
                             Navigator.pop(context);
                           },
                         ),
+                        DrawerMenuItem(
+                          icon: Icons.bar_chart,
+                          label: "Copy Trade",
+                          selected: selectedMenu == "Copy Trade",
+                          onTap: () {
+                            onMenuTap("Copy Trade");
+                          },
+                        ),
+                        DrawerMenuItem(
+                          icon: Iconsax.bank,
+                          label: "Investments",
+                          selected:
+                              selectedMenu == "Investments",
+                          onTap: () {
+                            onMenuTap("Investments");
+                          },
+                        ),
+                        DrawerMenuItem(
+                          icon: Icons.person,
+                          label: "Account",
+                          selected: selectedMenu == "Account",
+                          onTap: () {
+                            onMenuTap("Account");
+                            Navigator.pop(context);
+                          },
+                        ),
                       ],
                     ),
                   )
@@ -158,7 +193,7 @@ class _RootScreenState extends State<RootScreen> {
                           child: ListView(
                             children: [
                               DrawerMenuItem(
-                                icon: Icons.bar_chart,
+                                icon: Icons.dashboard,
                                 label: "Dashboard",
                                 selected:
                                     selectedMenu == "Dashboard",
@@ -172,6 +207,33 @@ class _RootScreenState extends State<RootScreen> {
                                     "Transactions",
                                 onTap: () =>
                                     onMenuTap("Transactions"),
+                              ),
+                              DrawerMenuItem(
+                                icon: Icons.bar_chart,
+                                label: "Copy Trade",
+                                selected:
+                                    selectedMenu == "Copy Trade",
+                                onTap: () {
+                                  onMenuTap("Copy Trade");
+                                },
+                              ),
+                              DrawerMenuItem(
+                                icon: Iconsax.bank,
+                                label: "Investments",
+                                selected: selectedMenu ==
+                                    "Investments",
+                                onTap: () {
+                                  onMenuTap("Investments");
+                                },
+                              ),
+                              DrawerMenuItem(
+                                icon: Icons.person,
+                                label: "Account",
+                                selected:
+                                    selectedMenu == "Account",
+                                onTap: () {
+                                  onMenuTap("Account");
+                                },
                               ),
                             ],
                           ),
@@ -548,7 +610,7 @@ class DrawerMenuItem extends StatelessWidget {
               fontSize: 15,
               color: selected
                   ? const Color(0xffFFFFFF)
-                  : AppColors.foundationGreyLightHover,
+                  : AppColors.black,
               fontWeight: FontWeight.w500,
             ),
           ),
