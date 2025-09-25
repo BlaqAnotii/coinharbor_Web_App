@@ -207,8 +207,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         'assets/image/dashboard.png'),
                                     fit: BoxFit.cover,
                                   )),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(
                                   horizontal: 20,
                                   vertical: 13,
                                 ),
@@ -216,7 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
-                                    Text(
+                                    const Text(
                                       "Today's Cryptocurrency prices",
                                       style: TextStyle(
                                         fontSize: 26,
@@ -225,10 +226,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         color: Color(0xffFFFFFF),
                                       ),
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 5,
                                     ),
-                                    Text(
+                                    const Text(
                                       "The global crypto market cap is \$1.86T",
                                       style: TextStyle(
                                         fontSize: 14,
@@ -237,10 +238,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         color: AppColors.white,
                                       ),
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 25,
                                     ),
                                     AppButton3(
+                                        onPressed: () {
+                                          context.go(
+                                              '/homepage?tab=Copy Trade');
+                                        },
                                         width: 170,
                                         height: 40,
                                         text: "Copy an Expert")

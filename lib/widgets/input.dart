@@ -13,6 +13,7 @@ class Input extends StatelessWidget {
   final String2VoidCallback? onChanged;
   final TextEditingController? controller;
   final bool autofocus;
+    late bool readOnly = false;
   late Color? borderColor = AppColors.border;
   late Color? activeBorderColor = AppColors.activeBorder;
   late bool isEnabled = true;
@@ -26,6 +27,7 @@ class Input extends StatelessWidget {
       this.suffixIcon,
       this.prefixIcon,
       this.onTap,
+      this.readOnly=false,
       this.onChanged,
       required this.label,
       this.autofocus = false,
@@ -48,6 +50,7 @@ class Input extends StatelessWidget {
           onChanged: onChanged,
           controller: controller,
           enabled: isEnabled,
+          readOnly: readOnly,
           autofocus: autofocus,
           style: Theme.of(context)
               .textTheme
@@ -83,6 +86,7 @@ class Input extends StatelessWidget {
       return TextField(
           cursorColor: AppColors.label,
           onTap: onTap,
+          readOnly: readOnly,
           onChanged: onChanged,
           controller: controller,
           enabled: isEnabled,

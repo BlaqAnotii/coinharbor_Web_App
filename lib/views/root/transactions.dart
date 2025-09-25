@@ -247,7 +247,11 @@ class _TransactionsScreenState
                                         const SizedBox(
                                           height: 15,
                                         ),
-                                        const AppButton3(
+                                        AppButton3(
+                                            onPressed: () {
+                                              context.go(
+                                                  '/homepage?tab=Dashboard');
+                                            },
                                             width: 145,
                                             height: 35,
                                             text: "Add Funds")
@@ -552,7 +556,11 @@ class _TransactionsScreenState
                                     const SizedBox(
                                       height: 15,
                                     ),
-                                    const AppButton3(
+                                    AppButton3(
+                                        onPressed: () {
+                                          context.go(
+                                              '/homepage?tab=Dashboard');
+                                        },
                                         width: 145,
                                         height: 35,
                                         text: "Add Funds")

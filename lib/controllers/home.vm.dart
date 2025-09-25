@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:coinharbor/controllers/base.vm.dart';
 import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
+import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
 import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/user_model.dart';
@@ -102,6 +103,20 @@ class HomeViewModel extends BaseViewModel {
     return [];
   }
 
+  Future<List<InvestmentHistory>> getAllInvest() async {
+    try {
+      startLoader();
+      var wallets = await userService.getInvest();
+      stopLoader();
+      return wallets;
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+    return [];
+  }
+
   final TextEditingController cryptoController =
       TextEditingController();
 
@@ -170,6 +185,23 @@ class HomeViewModel extends BaseViewModel {
     }
   }
 
+  Future processLogout(BuildContext context) async {
+    try {
+      startLoader();
+
+      var responseData = await userService.logout();
+
+      
+
+      stopLoader();
+      context.replace('/login');
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
   Future processTransfer(BuildContext context, String currency,
       String amount) async {
     try {
@@ -209,8 +241,8 @@ class HomeViewModel extends BaseViewModel {
     }
   }
 
-  Future processStartInvestment(BuildContext context, int optid,
-      String amount) async {
+  Future processStartInvestment(
+      BuildContext context, int optid, String amount) async {
     try {
       startLoader();
       var data = {
@@ -227,6 +259,44 @@ class HomeViewModel extends BaseViewModel {
 
         showCustomToast(
           responseData['message'] ?? "Successful Investment",
+          toastType: ToastType.success,
+        );
+        context.pop();
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+          responseData['message'] ??
+              "Something went wrong. Please try again.",
+          toastType: ToastType.error,
+        );
+        context.pop();
+      }
+      stopLoader();
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processWithdrawInvestment(
+    BuildContext context,
+    int opid,
+  ) async {
+    try {
+      startLoader();
+      var data = {"investment_id": opid};
+
+      print("Payload: $data");
+
+      var responseData = await authRepo.withdrawInvest(data);
+
+      if (responseData['status'] == true) {
+        print('CONTROLLER:::: $responseData');
+
+        showCustomToast(
+          responseData['message'] ?? "Investment Withdrawn",
           toastType: ToastType.success,
         );
         context.pop();

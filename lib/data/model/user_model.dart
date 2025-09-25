@@ -27,14 +27,14 @@ class UserResponse {
 }
 
 class User {
-  final String id;
+  final int id;
   final String name;
   final String email;
   final String? dob;
   final String? gender;
   final String? address;
   final String? phone;
-  final String? country;
+  final Country? country;
   final List<Wallets> wallets;
   final List<PaymentMethod> paymentMethods;
   final double fiatBalance;
@@ -58,30 +58,30 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-  return User(
-    id: json['id'] ?? '',
-    name: json['name'] ?? '',
-    email: json['email'] ?? '',
-    dob: json['dob'],
-    gender: json['gender'],
-    address: json['address'],
-    phone: json['phone'],
-    country: json['country'],
-    wallets: (json['wallets'] as List<dynamic>?)
-            ?.map((e) => Wallets.fromJson(e))
-            .toList() ??
-        [],
-    paymentMethods: (json['payment_methods'] as List<dynamic>?)
-            ?.map((e) => PaymentMethod.fromJson(e))
-            .toList() ??
-        [],
-    fiatBalance: (json['fiat_balance'] != null)
-        ? double.tryParse(json['fiat_balance'].toString()) ?? 0.0
-        : 0.0,
-    emailVerified: json['email_verified'] ?? false,
-    testMode: json['test_mode'] ?? false,
-  );
-}
+    return User(
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      dob: json['dob'],
+      gender: json['gender'],
+      address: json['address'],
+      phone: json['phone'],
+      country: json['country'] != null ? Country.fromJson(json['country']) : null,
+      wallets: (json['wallets'] as List<dynamic>?)
+              ?.map((e) => Wallets.fromJson(e))
+              .toList() ??
+          [],
+      paymentMethods: (json['payment_methods'] as List<dynamic>?)
+              ?.map((e) => PaymentMethod.fromJson(e))
+              .toList() ??
+          [],
+      fiatBalance: (json['fiat_balance'] != null)
+          ? double.tryParse(json['fiat_balance'].toString()) ?? 0.0
+          : 0.0,
+      emailVerified: json['email_verified'] ?? false,
+      testMode: json['test_mode'] ?? false,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -92,13 +92,56 @@ class User {
       'gender': gender,
       'address': address,
       'phone': phone,
-      'country': country,
+      'country': country?.toJson(),
       'wallets': wallets.map((e) => e.toJson()).toList(),
-      'payment_methods':
-          paymentMethods.map((e) => e.toJson()).toList(),
+      'payment_methods': paymentMethods.map((e) => e.toJson()).toList(),
       'fiat_balance': fiatBalance,
       'email_verified': emailVerified,
       'test_mode': testMode,
+    };
+  }
+}
+
+class Country {
+  final int id;
+  final String name;
+  final String iso2;
+  final String iso3;
+  final String currencyName;
+  final String currencyCode;
+  final String currencySymbol;
+
+  Country({
+    required this.id,
+    required this.name,
+    required this.iso2,
+    required this.iso3,
+    required this.currencyName,
+    required this.currencyCode,
+    required this.currencySymbol,
+  });
+
+  factory Country.fromJson(Map<String, dynamic> json) {
+    return Country(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      iso2: json['iso2'] ?? '',
+      iso3: json['iso3'] ?? '',
+      currencyName: json['currency_name'] ?? '',
+      currencyCode: json['currency_code'] ?? '',
+      currencySymbol: json['currency_symbol'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'iso2': iso2,
+      'iso3': iso3,
+      'currency_name': currencyName,
+      'currency_code': currencyCode,
+      'currency_symbol': currencySymbol,
     };
   }
 }

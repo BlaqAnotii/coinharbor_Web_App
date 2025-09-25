@@ -19,5 +19,8 @@ class UrlPath {
   static const stopcopytrade = '/copy_trade_stop.php';
   static const getinvestmentOptions = '/investment_options.php';
   static const startInvestments = '/start_investments.php';
+  static const getinvestments = '/investment_history.php';
+  static const investwithdraw = '/investments_withdraw.php';
+  static const completeProfile = '/complete_profile.php';
 
 }

@@ -1936,7 +1936,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                               // RIGHT SIDE (image)
                               Container(
-                                key: featuresKey,
+                                
                                 height: 220,
                                 width: double.infinity,
                                 margin: const EdgeInsets.only(
@@ -2344,7 +2344,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               Expanded(
                                 flex: 2,
                                 child: SizedBox(
-                                  key: featuresKey,
+                                  
                                   height:
                                       350, // 👈 set height to avoid RenderFlex error
                                   child: ListView.builder(

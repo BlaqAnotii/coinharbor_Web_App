@@ -1,4 +1,5 @@
 import 'package:coinharbor/controllers/home.vm.dart';
+import 'package:coinharbor/data/https.dart';
 import 'package:coinharbor/data/model/user_model.dart';
 import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/utils/snack_message.dart';
@@ -8,6 +9,7 @@ import 'package:coinharbor/views/root/account.dart';
 import 'package:coinharbor/views/root/copy_trade.dart';
 import 'package:coinharbor/views/root/dashboard.dart';
 import 'package:coinharbor/views/root/investments.dart';
+import 'package:coinharbor/views/root/trade_view.dart';
 import 'package:coinharbor/views/root/transactions.dart';
 import 'package:coinharbor/widgets/responsive.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,7 @@ class _RootScreenState extends State<RootScreen> {
   final List<String> menus = [
     "Dashboard",
     "Transactions",
+    "Trade View",
     "Copy Trade",
     "Investments",
     "Account",
@@ -38,6 +41,7 @@ class _RootScreenState extends State<RootScreen> {
   final Map<String, Widget> menuPages = {
     "Dashboard": const DashboardScreen(),
     "Transactions": const TransactionsScreen(),
+    "Trade View": const TradeViewScreen(),
     "Copy Trade": const CopyTradeScreen(),
     "Investments": const InvestmentsScreen(),
     "Account": const AccountScreen(),
@@ -137,11 +141,21 @@ class _RootScreenState extends State<RootScreen> {
                           },
                         ),
                         DrawerMenuItem(
+                          icon: Icons.pie_chart,
+                          label: "Trade View",
+                          selected: selectedMenu == "Trade View",
+                          onTap: () {
+                            onMenuTap("Trade View");
+                            Navigator.pop(context);
+                          },
+                        ),
+                        DrawerMenuItem(
                           icon: Icons.bar_chart,
                           label: "Copy Trade",
                           selected: selectedMenu == "Copy Trade",
                           onTap: () {
                             onMenuTap("Copy Trade");
+                            Navigator.pop(context);
                           },
                         ),
                         DrawerMenuItem(
@@ -151,6 +165,7 @@ class _RootScreenState extends State<RootScreen> {
                               selectedMenu == "Investments",
                           onTap: () {
                             onMenuTap("Investments");
+                            Navigator.pop(context);
                           },
                         ),
                         DrawerMenuItem(
@@ -162,6 +177,19 @@ class _RootScreenState extends State<RootScreen> {
                             Navigator.pop(context);
                           },
                         ),
+                        const SizedBox(
+                          height: 100,
+                        ),
+                        ListTile(
+                          onTap: () {
+                            model.processLogout(context);
+                          },
+                          leading: const Icon(Iconsax.logout),
+                          title: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        )
                       ],
                     ),
                   )
@@ -207,6 +235,15 @@ class _RootScreenState extends State<RootScreen> {
                                     "Transactions",
                                 onTap: () =>
                                     onMenuTap("Transactions"),
+                              ),
+                              DrawerMenuItem(
+                                icon: Icons.pie_chart,
+                                label: "Trade View",
+                                selected:
+                                    selectedMenu == "Trade View",
+                                onTap: () {
+                                  onMenuTap("Trade View");
+                                },
                               ),
                               DrawerMenuItem(
                                 icon: Icons.bar_chart,
@@ -460,9 +497,13 @@ class _RootScreenState extends State<RootScreen> {
                                         ),
                                       ),
                                     ),
-                                    const DropdownMenuItem(
+                                    DropdownMenuItem(
+                                      onTap: () {
+                                        context.go(
+                                            '/homepage?tab=Account');
+                                      },
                                       value: "Account Settings",
-                                      child: Row(
+                                      child: const Row(
                                         children: [
                                           Icon(
                                             Iconsax.setting,
@@ -479,20 +520,25 @@ class _RootScreenState extends State<RootScreen> {
                                         ],
                                       ),
                                     ),
-                                    const DropdownMenuItem(
+                                    DropdownMenuItem(
+                                      onTap: () {
+                                        model.processLogout(
+                                            context);
+                                      },
                                       value: "Logout",
-                                      child: Row(
+                                      child: const Row(
                                         children: [
                                           Icon(
                                             Iconsax.logout,
-                                            color: AppColors
-                                                .foundationGreyLightActive,
+                                            color: AppColors.red,
                                           ),
                                           SizedBox(width: 6),
                                           Text(
                                             "Logout",
                                             style: TextStyle(
                                               fontSize: 14,
+                                              color:
+                                                  AppColors.red,
                                             ),
                                           ),
                                         ],

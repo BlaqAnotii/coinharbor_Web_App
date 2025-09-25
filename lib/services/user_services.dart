@@ -4,6 +4,7 @@ import 'package:coinharbor/config/urlPath.dart';
 import 'package:coinharbor/data/https.dart';
 import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
+import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
 import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
@@ -262,6 +263,45 @@ class UserServices extends ChangeNotifier {
                   (e) => e != null && e is Map<String, dynamic>)
               .map<InvestmentOption>((e) =>
                   InvestmentOption.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+
+      // Return empty list if response is bad or no events found
+      return [];
+   
+    } catch (e, t) {
+      print(e);
+      print(t);
+      //throw Exception('An unknown error occurred: ${e.toString()}');
+    }
+    return [];
+  }
+
+
+  Future<List<InvestmentHistory>> getInvest() async {
+    String? token = cache.getStringPreference('token');
+
+    try {
+      // var response = await dio.get(UrlPath.profile);
+      var response = await httpGet(UrlPath.getinvestments,
+          hasAuth: true, token: token ?? "");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      final responseData = response.data;
+     if (responseData['status']==true) {
+        final data = responseData;
+
+        // Ensure "events" exists and is a List
+        if (data != null && data["data"] is List) {
+          final List userJson = data["data"] ?? [];
+
+          return userJson
+              .where(
+                  (e) => e != null && e is Map<String, dynamic>)
+              .map<InvestmentHistory>((e) =>
+                  InvestmentHistory.fromJson(e as Map<String, dynamic>))
               .toList();
         }
       }

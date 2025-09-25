@@ -1,6 +1,7 @@
 import 'package:coinharbor/controllers/home.vm.dart';
 import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
+import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
 import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/views/base.dart';
@@ -31,13 +32,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     }
   }
 
-  List<CopyTrade> copy = [];
+  List<InvestmentHistory> history = [];
 
-  Future<void> fetchCopy(HomeViewModel model) async {
+  Future<void> fetchInvest(HomeViewModel model) async {
     try {
-      List<CopyTrade> fetchedtrans = await model.getAllCopy();
+      List<InvestmentHistory> fetchedtrans =
+          await model.getAllInvest();
       setState(() {
-        copy = fetchedtrans;
+        history = fetchedtrans;
       });
     } catch (e) {
       debugPrint("Error fetching stores: $e");
@@ -346,7 +348,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   // Order history card
   Widget _buildOrderHistory() {
     return BaseView<HomeViewModel>(onModelReady: (model) {
-      fetchCopy(model);
+      fetchInvest(model);
     }, builder: (context, model, child) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -360,13 +362,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Copied Trades",
+            const Text("Investment History",
                 style: TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Column(
-              children: copy
-                  .map((copys) => _orderTile(copys))
+              children: history
+                  .map((histories) => _orderTile(histories))
                   .toList(),
             )
           ],
@@ -376,21 +378,25 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   // Single order row
-  Widget _orderTile(CopyTrade copy) {
+  Widget _orderTile(InvestmentHistory history) {
     Color statusColor;
-    switch (copy.status) {
+    switch (history.status) {
       case "active":
-        statusColor = Colors.green;
-        break;
-      case "paused":
         statusColor = Colors.orange;
         break;
-      case "stopped":
+      case "completed":
+        statusColor = Colors.green;
+        break;
+      case "redeemed":
+        statusColor = Colors.blue;
+        break;
+      case "cancelled":
         statusColor = Colors.red;
         break;
       default:
         statusColor = Colors.grey;
     }
+    bool isMobile = MediaQuery.of(context).size.width < 700;
 
     return BaseView<HomeViewModel>(
         onModelReady: (model) {},
@@ -410,25 +416,28 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      copy.traderName,
+                      history.optionName,
                       style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14),
                     ),
-                    if (copy.status != "stopped")
+                    if (history.status != "cancelled" &&
+                        history.status != "redeemed" &&
+                        history.status != "completed" &&
+                        history.status != "withdrawn")
                       InkWell(
                         onTap: () {
-                          model.processstopCopyTrade(
-                              context, copy.copyId);
+                          model.processWithdrawInvestment(
+                              context, history.investmentId);
                         },
                         child: const Text(
-                          'Stop Copy Trade',
+                          'Withdraw',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
-                            color: Colors.red,
+                            color: Colors.green,
                             decoration: TextDecoration.underline,
-                            decorationColor: Colors.red,
+                            decorationColor: Colors.green,
                           ),
                         ),
                       ),
@@ -436,36 +445,60 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Allocation: \$${copy.allocationAmount}",
+                  "Acc Fiat: \$${history.accruedFiat.toStringAsFixed(2)}",
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     color: AppColors.primary,
                     fontSize: 14,
                   ),
                 ),
-                Text("Currency: ${copy.allocationCurrency}",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
-                        fontSize: 14)),
-                Text("Current value: \$${copy.currentValue}",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
-                        fontSize: 14)),
-                Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Status: ${copy.status}",
-                        style: TextStyle(color: statusColor)),
-                    Text(
-                        DateFormat('MMM d, yyyy • h:mm a')
-                            .format(copy.createdAt),
-                        style:
-                            const TextStyle(color: Colors.grey)),
-                  ],
-                )
+                const SizedBox(height: 4),
+                Text(
+                  "Staked amount: \$${history.amount}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.primary,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text("Status: ${history.status}",
+                    style: TextStyle(color: statusColor)),
+                (!isMobile)
+                    ? Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                              DateFormat('MMM d, yyyy • h:mm a')
+                                  .format(history.startDate),
+                              style: const TextStyle(
+                                  color: Colors.grey)),
+                          const Text('   -    ',
+                              style:
+                                  TextStyle(color: Colors.grey)),
+                          Text(
+                              DateFormat('MMM d, yyyy • h:mm a')
+                                  .format(history.endDate),
+                              style: const TextStyle(
+                                  color: Colors.grey)),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                              "Start ${DateFormat('MMM d, yyyy • h:mm a').format(history.startDate)}",
+                              style: const TextStyle(
+                                  color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          Text(
+                              "End ${DateFormat('MMM d, yyyy • h:mm a').format(history.endDate)}",
+                              style: const TextStyle(
+                                  color: Colors.grey)),
+                        ],
+                      )
               ],
             ),
           );
