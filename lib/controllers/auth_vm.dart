@@ -213,6 +213,20 @@ class AuthViewModel extends BaseViewModel {
 // Parsed from the provided dataset. Import this file into your Flutter project.
 
   int? selectedCountryCode;
+  String? selectedgender;
+
+  final List<Map<String, dynamic>> gender = [
+    {
+      "id": "Male",
+      "name": "Male",
+    
+    },
+    {
+      "id": "Female",
+      "name": "Female",
+      
+    },
+  ];
 
   final List<Map<String, dynamic>> countries = [
     {
@@ -1966,7 +1980,6 @@ class AuthViewModel extends BaseViewModel {
   Future processCompleteProfile(
     BuildContext context,
     String dob,
-    String gender,
     String address,
     String phone,
   ) async {
@@ -1974,7 +1987,7 @@ class AuthViewModel extends BaseViewModel {
       startLoader();
       var data = {
         "dob": dob,
-        "gender": gender,
+        "gender": selectedgender,
         "address": address,
         "phone": phone,
         "country_id": selectedCountryCode

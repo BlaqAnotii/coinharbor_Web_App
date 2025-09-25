@@ -267,7 +267,8 @@ class _AccountScreenState extends State<AccountScreen> {
             _infoRow("Phone", user?.phone ?? "No phone number"),
             _infoRow("Gender", user?.gender ?? "No gender"),
             _infoRow("Address", user?.address ?? "No address"),
-            _infoRow("Address", user!.country!.name),
+            _infoRow(
+                "Address", user!.country?.name ?? 'No country'),
             const SizedBox(height: 20),
           ],
         );
@@ -375,33 +376,50 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: genderController,
-                decoration: InputDecoration(
-                  hintText: 'Male, Female, Others',
-                  hintStyle: GoogleFonts.inter(
-                    textStyle: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade400,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(left: 10),
+                decoration: BoxDecoration(
+                  border:
+                      Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    dropdownColor: Colors.white,
+                    hint: const Text(
+                      'Select Gender',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.background,
-                    ),
+                    value: model.selectedgender,
+                    icon: const Icon(Iconsax.arrow_down_1,
+                        color: Color(0xff161616), size: 16),
+                    items: model.gender.map((coin) {
+                      return DropdownMenuItem<String>(
+                        value: coin['id'],
+                        child: Text(
+                          coin['name']!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      print('onChanged fired with: $val');
+                      // <-- use dialog's setState
+                      setState(() {
+                        // <-- use dialog's setState
+                        model.selectedgender = val!;
+                      });
+                    },
                   ),
                 ),
               ),
@@ -490,16 +508,18 @@ class _AccountScreenState extends State<AccountScreen> {
                 onPressed: () {
                   if (_dateOfBirthController.text.isNotEmpty &&
                       _phoneController.text.isNotEmpty &&
-                      genderController.text.isNotEmpty &&
+                      model.selectedgender != null &&
                       _addressController.text.isNotEmpty &&
                       model.selectedCountryCode != null) {
                     model.processCompleteProfile(
                       context,
                       _dateOfBirthController.text,
-                      genderController.text,
                       _addressController.text,
                       _phoneController.text,
                     );
+                  } else {
+                    showCustomToast('Missing Field',
+                        toastType: ToastType.info);
                   }
                 },
                 text: 'Update',

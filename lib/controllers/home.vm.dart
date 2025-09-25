@@ -191,8 +191,6 @@ class HomeViewModel extends BaseViewModel {
 
       var responseData = await userService.logout();
 
-      
-
       stopLoader();
       context.replace('/login');
     } catch (e, l) {
@@ -496,8 +494,8 @@ class HomeViewModel extends BaseViewModel {
                   ),
 
                   _buildRow("Amount", res['amount']),
-                  _buildRow(
-                      "Fiat Equivalent", res['fiat_equivalent']),
+                  _buildRow("Fiat Equivalent",
+                      '\$${res['fiat_equivalent']}'),
                   _buildRow("Status", res['status']),
                 ],
               ),

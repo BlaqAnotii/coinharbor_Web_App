@@ -795,7 +795,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       )),
                                                     ],
                                                     rows: transact
-                                                        .take(4) // 👈 only keep 4 transactions
+                                                        .take(2) // 👈 only keep 4 transactions
                                                         .map((members) {
                                                       Color
                                                           statusColor;
@@ -866,7 +866,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ],
                                     ),
                                   ),
-                                ])
+                                ]),
+                            const SizedBox(
+                              height: 100,
+                            )
                           ],
                         ),
                         SizedBox(
@@ -914,7 +917,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           MainAxisAlignment
                                               .spaceEvenly,
                                       children: [
-                                        GestureDetector(
+                                        InkWell(
                                             onTap: () {
                                               showDialog(
                                                 context: context,
@@ -1267,7 +1270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: _buildActionButton(
                                                 'assets/images/payment.png',
                                                 'Receive')),
-                                        GestureDetector(
+                                        InkWell(
                                           onTap: () {
                                             showDialog(
                                               context: context,
@@ -1714,7 +1717,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             'Send',
                                           ),
                                         ),
-                                        GestureDetector(
+                                        InkWell(
                                           onTap: () {
                                             showDialog(
                                               context: context,
@@ -1903,7 +1906,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             'Add Wallet',
                                           ),
                                         ),
-                                        GestureDetector(
+                                        InkWell(
                                           onTap: () {
                                             showDialog(
                                               context: context,
@@ -3157,7 +3160,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       MainAxisAlignment
                                           .spaceEvenly,
                                   children: [
-                                    GestureDetector(
+                                    InkWell(
                                         onTap: () {
                                           showDialog(
                                             context: context,
@@ -3237,7 +3240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment.start,
                                                           children: [
-                                                            GestureDetector(
+                                                            InkWell(
                                                               onTap: () {
                                                                 context.pop();
                                                               },
@@ -3383,7 +3386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                                 child: Column(
                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    GestureDetector(
+                                                                                    InkWell(
                                                                                       onTap: () {
                                                                                         context.pop();
                                                                                       },
@@ -3530,7 +3533,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         child: _buildActionButton(
                                             'assets/images/payment.png',
                                             'Receive')),
-                                    GestureDetector(
+                                    InkWell(
                                       onTap: () {
                                         showDialog(
                                           context: context,
@@ -3609,7 +3612,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          GestureDetector(
+                                                          InkWell(
                                                             onTap:
                                                                 () {
                                                               context.pop();
@@ -3835,7 +3838,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                               child: Column(
                                                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                                                 children: [
-                                                                                  GestureDetector(
+                                                                                  InkWell(
                                                                                     onTap: () {
                                                                                       context.pop();
                                                                                     },
@@ -4017,7 +4020,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         'Send',
                                       ),
                                     ),
-                                    GestureDetector(
+                                    InkWell(
                                       onTap: () {
                                         showDialog(
                                           context: context,
@@ -4096,7 +4099,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          GestureDetector(
+                                                          InkWell(
                                                             onTap:
                                                                 () {
                                                               context.pop();
@@ -4223,7 +4226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         'Add Wallet',
                                       ),
                                     ),
-                                    GestureDetector(
+                                    InkWell(
                                       onTap: () {
                                         showDialog(
                                           context: context,
@@ -4302,7 +4305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          GestureDetector(
+                                                          InkWell(
                                                             onTap:
                                                                 () {
                                                               context.pop();
@@ -4457,7 +4460,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                               child: Column(
                                                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                                                 children: [
-                                                                                  GestureDetector(
+                                                                                  InkWell(
                                                                                     onTap: () {
                                                                                       context.pop();
                                                                                     },
@@ -4874,7 +4877,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          GestureDetector(
+                                                          InkWell(
                                                             onTap:
                                                                 () {
                                                               context.pop();

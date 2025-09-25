@@ -22,8 +22,6 @@ Widget toast(String message, {ToastType? toastType}) {
     listColor = AppColors.primary;
   }
 
-
-
   return Padding(
     padding: const EdgeInsets.symmetric(
       horizontal: 10,
@@ -70,7 +68,7 @@ Widget toast(String message, {ToastType? toastType}) {
 }
 
 showCustomToast(String message,
-    {ToastType toastType = ToastType.error, int time = 10}) {
+    {ToastType toastType = ToastType.error, int time = 5}) {
   // dialogLocation(message: message, success: success, time: time);
   showToastWidget(
     toast(message, toastType: toastType),

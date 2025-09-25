@@ -100,6 +100,7 @@ class _RootScreenState extends State<RootScreen> {
     return BaseView<HomeViewModel>(
         onModelReady: (model) {
           getUserDetails(model);
+          model.setAppTitle('Homepage');
         },
         onListenForEvent: (model, event) {},
         builder: (context, model, child) {
