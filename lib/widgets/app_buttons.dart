@@ -2,7 +2,7 @@ import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/widgets/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -136,7 +136,7 @@ class AppButton3 extends StatelessWidget {
             width: 12,
           ),
           const Icon(
-            Iconsax.arrow_right_1,
+            Iconsax.arrow_right_1_bold,
             color: AppColors.primary,
           ),
         ],

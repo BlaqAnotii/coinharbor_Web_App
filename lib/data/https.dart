@@ -9,7 +9,6 @@ import 'package:coinharbor/services/locator.dart';
 import 'package:coinharbor/services/user_services.dart';
 import 'package:dio/dio.dart';
 
-
 import 'network/error_handler.dart';
 
 UserServices userServices = getIt<UserServices>();
@@ -80,26 +79,25 @@ Future<dynamic> httpPost(String path, dynamic fData,
     dio.options.headers = getHeaders();
   }
 
-  // ✅ Full URL
-  final url = "${Config.BASEURL}$path";
-  print(url);
+  print("${Config.BASEURL}$path");
 
   try {
-    var response = await dio.post(
-      url, // ✅ use the full URL here
-      data: jsonEncode(fData),
-    );
+    // Convert fData to JSON instead of using FormData
+    var response = await dio.post(path, data: jsonEncode(fData));
     return response;
   } on DioException catch (err) {
-    print("error happening @ $url");
+    print("error happening @ ${dio.options.baseUrl}$path");
     handleError(err);
+    print(err);
+    rethrow;
+  } on Exception catch (err) {
+    print(err);
     rethrow;
   } catch (err) {
     print(err);
     rethrow;
   }
 }
-
 Future<dynamic> httpPost2(String path, dynamic fData,
     {String token = "", bool hasAuth = false}) async {
   dio.options.headers = {
@@ -162,7 +160,6 @@ Future<dynamic> httpPost3(
     rethrow;
   }
 }
-
 
 Future<dynamic> httpPost4(
   String path,

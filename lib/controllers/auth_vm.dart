@@ -47,7 +47,8 @@ class AuthViewModel extends BaseViewModel {
       if (response != null) {
         //  await userService.initializer();
         print('REG OK::::$response');
-        showCustomToast("Registration Successful",
+        showCustomToast(
+            response['message'] ?? "Registration Successful",
             toastType: ToastType.success);
         stopLoader();
         String emailValue = email.text;
@@ -219,12 +220,10 @@ class AuthViewModel extends BaseViewModel {
     {
       "id": "Male",
       "name": "Male",
-    
     },
     {
       "id": "Female",
       "name": "Female",
-      
     },
   ];
 

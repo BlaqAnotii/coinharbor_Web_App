@@ -17,8 +17,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax/iconsax.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:marquee/marquee.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -133,6 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     print('initState selectedCrypto2 = $selectedCrypto2');
+    fetchCryptoData();
 
     cryptoController
         .addListener(convert); // auto-update on typing
@@ -156,6 +159,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       debugPrint("Error fetching stores: $e");
     }
+  }
+
+  List<dynamic> _coins = [];
+  bool _loading = true;
+
+  Future<void> fetchCryptoData() async {
+    final url = Uri.parse(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1&price_change_percentage=24h');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _coins = json.decode(response.body);
+        _loading = false;
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  String buildTickerText() {
+    if (_coins.isEmpty) return "Loading crypto data...";
+
+    return _coins.map((coin) {
+      final name = coin['name'];
+      final price = coin['current_price'];
+      final change =
+          coin['price_change_percentage_24h']?.toDouble() ?? 0.0;
+
+      final arrow = change >= 0 ? "▲" : "▼";
+      final color = change >= 0 ? "🟢" : "🔴";
+
+      return "$color $name: \$$price ($arrow ${change.toStringAsFixed(2)}%)";
+    }).join("   •   ");
   }
 
   @override
@@ -182,11 +220,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,
-            vertical: 30,
+            vertical: 10,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                color: AppColors.background,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10),
+                child: SizedBox(
+                  height: 40,
+                  child: _loading
+                      ? buildSkeleton()
+                      : Marquee(
+                          text: buildTickerText(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          blankSpace: 50,
+                          velocity: 50.0,
+                          pauseAfterRound: Duration.zero,
+                          startPadding: 10.0,
+                        ),
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
               desktop
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -1057,7 +1120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                                     ),
                                                                                   ),
                                                                                   value: selectedCrypto3,
-                                                                                  icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                                  icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                                   items: cryptos3.map((coin) {
                                                                                     return DropdownMenuItem<String>(
                                                                                       value: coin['id'],
@@ -1416,7 +1479,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                                   ),
                                                                                 ),
                                                                                 value: selectedCrypto4,
-                                                                                icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                                icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                                 items: cryptos4.map((coin) {
                                                                                   return DropdownMenuItem<String>(
                                                                                     value: coin['id'],
@@ -1478,7 +1541,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       ),
                                                                       value: selectedNetwork,
                                                                       icon: const Icon(
-                                                                        Iconsax.arrow_down_1,
+                                                                        Iconsax.arrow_down_1_bold,
                                                                         color: Color(0xff161616),
                                                                         size: 16,
                                                                       ),
@@ -1843,7 +1906,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                           ),
                                                                           value: model.selectedCrypto,
                                                                           icon: const Icon(
-                                                                            Iconsax.arrow_down_1,
+                                                                            Iconsax.arrow_down_1_bold,
                                                                             color: Color(0xff161616),
                                                                             size: 16,
                                                                           ),
@@ -2052,7 +2115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                                   ),
                                                                                 ),
                                                                                 value: selectedCrypto2,
-                                                                                icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                                icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                                 items: cryptos2.map((coin) {
                                                                                   return DropdownMenuItem<String>(
                                                                                     value: coin['id'],
@@ -2367,7 +2430,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         selectedCrypto,
                                                     icon: const Icon(
                                                         Iconsax
-                                                            .arrow_down_1,
+                                                            .arrow_down_1_bold,
                                                         color: Color(
                                                             0xff161616),
                                                         size:
@@ -3314,7 +3377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                               ),
                                                                             ),
                                                                             value: selectedCrypto3,
-                                                                            icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                            icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                             items: cryptos3.map((coin) {
                                                                               return DropdownMenuItem<String>(
                                                                                 value: coin['id'],
@@ -3695,7 +3758,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                             ),
                                                                           ),
                                                                           value: selectedCrypto4,
-                                                                          icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                          icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                           items: cryptos4.map((coin) {
                                                                             return DropdownMenuItem<String>(
                                                                               value: coin['id'],
@@ -3767,7 +3830,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 ),
                                                                 value: selectedNetwork,
                                                                 icon: const Icon(
-                                                                  Iconsax.arrow_down_1,
+                                                                  Iconsax.arrow_down_1_bold,
                                                                   color: Color(0xff161616),
                                                                   size: 16,
                                                                 ),
@@ -4162,7 +4225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                     ),
                                                                     value: model.selectedCrypto,
                                                                     icon: const Icon(
-                                                                      Iconsax.arrow_down_1,
+                                                                      Iconsax.arrow_down_1_bold,
                                                                       color: Color(0xff161616),
                                                                       size: 16,
                                                                     ),
@@ -4388,7 +4451,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                             ),
                                                                           ),
                                                                           value: selectedCrypto2,
-                                                                          icon: const Icon(Iconsax.arrow_down_1, color: Color(0xff161616), size: 16),
+                                                                          icon: const Icon(Iconsax.arrow_down_1_bold, color: Color(0xff161616), size: 16),
                                                                           items: cryptos2.map((coin) {
                                                                             return DropdownMenuItem<String>(
                                                                               value: coin['id'],
@@ -4706,7 +4769,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     selectedCrypto,
                                                 icon: const Icon(
                                                     Iconsax
-                                                        .arrow_down_1,
+                                                        .arrow_down_1_bold,
                                                     color: Color(
                                                         0xff161616),
                                                     size: 16),
@@ -5264,6 +5327,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       );
     });
+  }
+
+  Widget buildSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
   }
 
   Widget _buildDivider() {

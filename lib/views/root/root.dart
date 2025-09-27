@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:country_flags/country_flags.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -160,7 +160,7 @@ class _RootScreenState extends State<RootScreen> {
                           },
                         ),
                         DrawerMenuItem(
-                          icon: Iconsax.bank,
+                          icon: Iconsax.bank_outline,
                           label: "Investments",
                           selected:
                               selectedMenu == "Investments",
@@ -185,7 +185,7 @@ class _RootScreenState extends State<RootScreen> {
                           onTap: () {
                             model.processLogout(context);
                           },
-                          leading: const Icon(Iconsax.logout),
+                          leading: const Icon(Iconsax.logout_bold),
                           title: const Text(
                             'Logout',
                             style: TextStyle(color: Colors.red),
@@ -256,7 +256,7 @@ class _RootScreenState extends State<RootScreen> {
                                 },
                               ),
                               DrawerMenuItem(
-                                icon: Iconsax.bank,
+                                icon: Iconsax.bank_outline,
                                 label: "Investments",
                                 selected: selectedMenu ==
                                     "Investments",
@@ -380,7 +380,7 @@ class _RootScreenState extends State<RootScreen> {
                                           const SizedBox(
                                               width: 11),
                                           const Icon(
-                                            Iconsax.arrow_down_1,
+                                            Iconsax.arrow_down_1_bold,
                                             color: Color(
                                                 0xff161616),
                                             size: 14,
@@ -452,7 +452,7 @@ class _RootScreenState extends State<RootScreen> {
                                       ),
                                       const SizedBox(width: 8),
                                       const Icon(
-                                        Iconsax.arrow_down_1,
+                                        Iconsax.arrow_down_1_bold,
                                         color: Color(0xff161616),
                                         size: 14,
                                       ),
@@ -507,7 +507,7 @@ class _RootScreenState extends State<RootScreen> {
                                       child: const Row(
                                         children: [
                                           Icon(
-                                            Iconsax.setting,
+                                            Iconsax.setting_bold,
                                             color: AppColors
                                                 .foundationGreyLightActive,
                                           ),
@@ -530,7 +530,7 @@ class _RootScreenState extends State<RootScreen> {
                                       child: const Row(
                                         children: [
                                           Icon(
-                                            Iconsax.logout,
+                                            Iconsax.logout_bold,
                                             color: AppColors.red,
                                           ),
                                           SizedBox(width: 6),

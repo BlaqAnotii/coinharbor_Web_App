@@ -14,7 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:oktoast/oktoast.dart';
 import 'dart:html' as html;
 import 'dart:js' as js;
@@ -174,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         context.go('/home');
                       },
                       leading: const Icon(
-                        Iconsax.home_1,
+                        Iconsax.home_1_bold,
                         size: 22,
                         color: Color(0xff4779A3),
                       ),
@@ -188,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       leading: const Icon(
-                        Iconsax.people,
+                        Iconsax.people_bold,
                         size: 22,
                         color: Color(0xff4779A3),
                       ),
@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         //context.go('/contact_us');
                       },
                       leading: const Icon(
-                        Iconsax.call_add,
+                        Iconsax.call_add_bold,
                         size: 22,
                         color: Color(0xff4779A3),
                       ),
@@ -253,7 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: AppColors.white,
                 )
               : const Icon(
-                  Iconsax.message5,
+                  Iconsax.message_bold,
                   color: AppColors.white,
                 ),
         ),

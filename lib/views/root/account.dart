@@ -8,7 +8,7 @@ import 'package:coinharbor/widgets/app_buttons.dart';
 import 'package:coinharbor/widgets/input.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:intl/intl.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -202,7 +202,7 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 3),
 
             ListTile(
-              leading: const Icon(Iconsax.logout,
+              leading: const Icon(Iconsax.logout_bold,
                   color: Colors.redAccent),
               title: const Text("Logout",
                   style: TextStyle(color: Colors.redAccent)),
@@ -397,7 +397,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                     value: model.selectedgender,
-                    icon: const Icon(Iconsax.arrow_down_1,
+                    icon: const Icon(Iconsax.arrow_down_1_bold,
                         color: Color(0xff161616), size: 16),
                     items: model.gender.map((coin) {
                       return DropdownMenuItem<String>(
@@ -477,7 +477,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                     value: model.selectedCountryCode,
-                    icon: const Icon(Iconsax.arrow_down_1,
+                    icon: const Icon(Iconsax.arrow_down_1_bold,
                         color: Color(0xff161616), size: 16),
                     items: model.countries.map((coin) {
                       return DropdownMenuItem<int>(

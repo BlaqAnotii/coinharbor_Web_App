@@ -123,7 +123,7 @@ class AuthRepository {
     return responseData;
   }
 
-Future addWallet(Map<String, dynamic> data) async {
+  Future addWallet(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.addWallet,
       data,
@@ -191,8 +191,7 @@ Future addWallet(Map<String, dynamic> data) async {
     return responseData;
   }
 
-
-   Future startInvestment(Map<String, dynamic> data) async {
+  Future startInvestment(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.startInvestments,
       data,
@@ -209,10 +208,7 @@ Future addWallet(Map<String, dynamic> data) async {
     return responseData;
   }
 
-
-
-
-   Future stopcopytrade(Map<String, dynamic> data) async {
+  Future stopcopytrade(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.stopcopytrade,
       data,
@@ -229,9 +225,7 @@ Future addWallet(Map<String, dynamic> data) async {
     return responseData;
   }
 
-
-
- Future withdrawInvest(Map<String, dynamic> data) async {
+  Future withdrawInvest(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.investwithdraw,
       data,
@@ -248,8 +242,7 @@ Future addWallet(Map<String, dynamic> data) async {
     return responseData;
   }
 
-
-   Future completeprofile(Map<String, dynamic> data) async {
+  Future completeprofile(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.completeProfile,
       data,
@@ -265,9 +258,6 @@ Future addWallet(Map<String, dynamic> data) async {
 
     return responseData;
   }
-
-
-
 
   Future login(Map<String, dynamic> data) async {
     var response = await httpPost(

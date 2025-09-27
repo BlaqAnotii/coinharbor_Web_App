@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class TransactionsScreen extends StatefulWidget {

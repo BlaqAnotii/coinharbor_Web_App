@@ -45,7 +45,6 @@ dependencies:
   shared_preferences: ^2.2.3
   flutter_spinkit: ^5.2.1
   provider: ^6.1.2
-  iconsax: ^0.0.8
   path_provider: ^2.1.5
   intl: ^0.20.2
   icons_plus: ^5.0.0
@@ -104,7 +103,6 @@ flutter:
     - assets/icons/
     - assets/image/
     - assets/data/
-    - assets/trade.html
 
 
 
