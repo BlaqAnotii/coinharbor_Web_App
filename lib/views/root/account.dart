@@ -1,15 +1,18 @@
 import 'package:coinharbor/controllers/auth_vm.dart';
 import 'package:coinharbor/controllers/home.vm.dart';
+import 'package:coinharbor/data/model/kyc_model.dart';
 import 'package:coinharbor/data/model/user_model.dart';
 import 'package:coinharbor/resources/colors.dart';
 import 'package:coinharbor/utils/snack_message.dart';
 import 'package:coinharbor/views/base.dart';
 import 'package:coinharbor/widgets/app_buttons.dart';
 import 'package:coinharbor/widgets/input.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide VoidCallback;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
+import 'dart:html';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -22,12 +25,29 @@ enum MenuOption {
   personalInfo,
   deliveryHistory,
 
-  ///  bankAccounts,
+  bankAccounts,
 }
 
 class _AccountScreenState extends State<AccountScreen> {
   MenuOption _selectedOption = MenuOption.personalInfo;
   User? user;
+  KycData? kyc;
+
+  Timer? _timer; // ✅ store the timer reference
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final model =
+          HomeViewModel(); // ⚠️ Replace with your provider/get_it if needed
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _handleRefresh(model);
+      });
+    });
+  }
 
   getUserDetails(HomeViewModel model) async {
     await model.getUser();
@@ -41,6 +61,31 @@ class _AccountScreenState extends State<AccountScreen> {
     });
   }
 
+  getKycStatus(HomeViewModel model) async {
+    await model.getKycstatus();
+    if (model.kyc == null) {
+      showCustomToast("Failed to load kyc status",
+          toastType: ToastType.error, time: 5);
+    }
+    setState(() {
+      kyc = model.kyc;
+    });
+  }
+
+  /// ✅ Refresh handler for pull-to-refresh
+  Future<void> _handleRefresh(HomeViewModel model) async {
+    try {
+// await sequentially to avoid type issues with Future.wait and void futures
+      await getUserDetails(model);
+      await getKycStatus(model);
+    } catch (e, st) {
+      debugPrint('Error refreshing account screen: $e\n$st');
+      showCustomToast('Failed to refresh data',
+          toastType: ToastType.error);
+      // rethrow if you want RefreshIndicator to show error higher up (not required)
+    }
+  }
+
   final TextEditingController _phoneController =
       TextEditingController();
   final TextEditingController _addressController =
@@ -49,6 +94,7 @@ class _AccountScreenState extends State<AccountScreen> {
       TextEditingController();
   final TextEditingController genderController =
       TextEditingController();
+  final TextEditingController idNumber = TextEditingController();
 
   String? _selectedGender;
   DateTime? _selectedDate;
@@ -66,8 +112,7 @@ class _AccountScreenState extends State<AccountScreen> {
       context: context,
       initialDate: _selectedDate ?? eighteenYearsAgo,
       firstDate: DateTime(1900),
-      lastDate:
-          eighteenYearsAgo, // 👈 restrict max date to 18 years ago
+      lastDate: eighteenYearsAgo,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -92,43 +137,93 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  String? base64Image;
+
+  Future<void> pickImage() async {
+    final completer = Completer<String>();
+    FileUploadInputElement uploadInput =
+        FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((event) {
+      final file = uploadInput.files!.first;
+      final reader = FileReader();
+
+      reader.readAsDataUrl(file);
+      reader.onLoadEnd.listen((e) {
+        setState(() {
+          base64Image = reader.result as String?;
+        });
+        completer.complete(reader.result as String);
+      });
+    });
+
+    await completer.future;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // ✅ Stop timer when leaving screen
+
+    _phoneController.dispose();
+    _addressController.dispose();
+    _dateOfBirthController.dispose();
+    genderController.dispose();
+    idNumber.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isMobile = constraints.maxWidth < 700;
+    return BaseView<HomeViewModel>(
+      onModelReady: (model) {
+        getUserDetails(model);
+        getKycStatus(model);
+      },
+      builder: (context, model, child) {
+        return SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => _handleRefresh(model),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isMobile = constraints.maxWidth < 700;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Responsive Layout
-                isMobile
-                    ? Column(
-                        children: [
-                          _buildMenuCard(),
-                          const SizedBox(height: 16),
-                          _buildRightCard(),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              flex: 2, child: _buildMenuCard()),
-                          const SizedBox(width: 16),
-                          Expanded(
-                              flex: 3, child: _buildRightCard()),
-                        ],
-                      ),
-              ],
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      isMobile
+                          ? Column(
+                              children: [
+                                _buildMenuCard(),
+                                const SizedBox(height: 16),
+                                _buildRightCard(),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                    flex: 2,
+                                    child: _buildMenuCard()),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                    flex: 3,
+                                    child: _buildRightCard()),
+                              ],
+                            ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -136,6 +231,7 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget _buildMenuCard() {
     return BaseView<HomeViewModel>(onModelReady: (model) {
       getUserDetails(model);
+      getKycStatus(model);
     }, builder: (context, model, child) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -171,7 +267,18 @@ class _AccountScreenState extends State<AccountScreen> {
             Text((user == null) ? 'no name' : user!.name,
                 style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
 
+            Text(
+              (kyc == null)
+                  ? 'KYC status: Unverified'
+                  : 'KYC status: ${kyc!.status}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.foundationGreyLightActive,
+              ),
+            ),
             const SizedBox(height: 16),
 
             // Menu Items
@@ -192,13 +299,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 onTap: () => setState(() => _selectedOption =
                     MenuOption.deliveryHistory)),
 
-            // _menuTile(
-            //     icon: Icons.verified,
-            //     title: "KYC Verification",
-            //     selected:
-            //         _selectedOption == MenuOption.bankAccounts,
-            //     onTap: () => setState(() =>
-            //         _selectedOption = MenuOption.bankAccounts)),
+            _menuTile(
+                icon: Icons.verified,
+                title: "KYC Verification",
+                selected:
+                    _selectedOption == MenuOption.bankAccounts,
+                onTap: () => setState(() =>
+                    _selectedOption = MenuOption.bankAccounts)),
             const SizedBox(height: 3),
 
             ListTile(
@@ -232,8 +339,8 @@ class _AccountScreenState extends State<AccountScreen> {
         return _personalInfoWidget();
       case MenuOption.deliveryHistory:
         return _updateProfileWidget();
-      // case MenuOption.bankAccounts:
-      //   return _updateKYC();
+      case MenuOption.bankAccounts:
+        return _updateKYC();
     }
   }
 
@@ -241,6 +348,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return BaseView<HomeViewModel>(
       onModelReady: (model) {
         getUserDetails(model);
+        getKycStatus(model);
       },
       builder: (context, model, child) {
         if (user == null) {
@@ -269,6 +377,7 @@ class _AccountScreenState extends State<AccountScreen> {
             _infoRow("Address", user?.address ?? "No address"),
             _infoRow(
                 "Address", user!.country?.name ?? 'No country'),
+            _infoRow("KYC Status", kyc?.status ?? ''),
             const SizedBox(height: 20),
           ],
         );
@@ -531,241 +640,166 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  // Widget _updateKYC() {
-  //   return BaseView<AuthViewModel>(
-  //     onModelReady: (model) {},
-  //     builder: (context, model, child) {
-  //       return Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 20),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             const Row(
-  //               mainAxisAlignment:
-  //                   MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Text("Update Profile",
-  //                     style: TextStyle(
-  //                         fontSize: 16,
-  //                         fontWeight: FontWeight.w600)),
-  //               ],
-  //             ),
-  //             const Divider(height: 20),
-  //             const SizedBox(height: 30),
-  //             GestureDetector(
-  //               onTap: () => _selectDate(context),
-  //               child: Container(
-  //                 decoration: BoxDecoration(
-  //                   border:
-  //                       Border.all(color: Colors.grey.shade300),
-  //                   borderRadius: BorderRadius.circular(12),
-  //                 ),
-  //                 child: TextField(
-  //                   controller: _dateOfBirthController,
-  //                   enabled: false,
-  //                   decoration: InputDecoration(
-  //                     hintText: 'Select date of birth',
-  //                     hintStyle: GoogleFonts.inter(
-  //                       textStyle: TextStyle(
-  //                         fontSize: 14,
-  //                         color: Colors.grey.shade400,
-  //                       ),
-  //                     ),
-  //                     suffixIcon: const Icon(
-  //                       Icons.calendar_today,
-  //                       color: Colors.grey,
-  //                       size: 20,
-  //                     ),
-  //                     border: InputBorder.none,
-  //                     contentPadding: const EdgeInsets.symmetric(
-  //                       horizontal: 12,
-  //                       vertical: 16,
-  //                     ),
-  //                     disabledBorder: InputBorder.none,
-  //                   ),
-  //                   style: GoogleFonts.inter(
-  //                     textStyle: const TextStyle(
-  //                       fontSize: 14,
-  //                       color: Colors.black,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 30),
-  //             TextField(
-  //               controller: _phoneController,
-  //               keyboardType: TextInputType.phone,
-  //               decoration: InputDecoration(
-  //                 hintText: 'Phone number',
-  //                 hintStyle: GoogleFonts.inter(
-  //                   textStyle: TextStyle(
-  //                     fontSize: 14,
-  //                     color: Colors.grey.shade400,
-  //                   ),
-  //                 ),
-  //                 border: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 enabledBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 focusedBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: const BorderSide(
-  //                     color: AppColors.background,
-  //                   ),
-  //                 ),
-  //                 disabledBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 20),
-  //             TextField(
-  //               controller: genderController,
-  //               decoration: InputDecoration(
-  //                 hintText: 'Male, Female, Others',
-  //                 hintStyle: GoogleFonts.inter(
-  //                   textStyle: TextStyle(
-  //                     fontSize: 14,
-  //                     color: Colors.grey.shade400,
-  //                   ),
-  //                 ),
-  //                 border: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 enabledBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 focusedBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: const BorderSide(
-  //                     color: AppColors.background,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 20),
-  //             TextField(
-  //               maxLines: 3,
-  //               controller: _addressController,
-  //               decoration: InputDecoration(
-  //                 hintText: 'Residential Address',
-  //                 hintStyle: GoogleFonts.inter(
-  //                   textStyle: TextStyle(
-  //                     fontSize: 14,
-  //                     color: Colors.grey.shade400,
-  //                   ),
-  //                 ),
-  //                 border: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 enabledBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: BorderSide(
-  //                     color: Colors.grey.shade300,
-  //                   ),
-  //                 ),
-  //                 focusedBorder: OutlineInputBorder(
-  //                   borderRadius: BorderRadius.circular(12),
-  //                   borderSide: const BorderSide(
-  //                     color: AppColors.background,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 20),
-  //             Container(
-  //               width: double.infinity,
-  //               padding: const EdgeInsets.only(left: 10),
-  //               decoration: BoxDecoration(
-  //                 border:
-  //                     Border.all(color: Colors.grey.shade300),
-  //                 borderRadius: BorderRadius.circular(12),
-  //               ),
-  //               child: DropdownButtonHideUnderline(
-  //                 child: DropdownButton<int>(
-  //                   isExpanded: true,
-  //                   dropdownColor: Colors.white,
-  //                   hint: const Text(
-  //                     'Select Country',
-  //                     style: TextStyle(
-  //                       fontSize: 15,
-  //                       color: Colors.grey,
-  //                       fontWeight: FontWeight.w500,
-  //                     ),
-  //                   ),
-  //                   value: model.selectedCountryCode,
-  //                   icon: const Icon(Iconsax.arrow_down_1,
-  //                       color: Color(0xff161616), size: 16),
-  //                   items: model.countries.map((coin) {
-  //                     return DropdownMenuItem<int>(
-  //                       value: coin['id'],
-  //                       child: Text(
-  //                         coin['name']!,
-  //                         style: const TextStyle(
-  //                           fontSize: 15,
-  //                           color: AppColors.black,
-  //                           fontWeight: FontWeight.w600,
-  //                         ),
-  //                       ),
-  //                     );
-  //                   }).toList(),
-  //                   onChanged: (val) {
-  //                     print('onChanged fired with: $val');
-  //                     // <-- use dialog's setState
-  //                     setState(() {
-  //                       // <-- use dialog's setState
-  //                       model.selectedCountryCode = val!;
-  //                     });
-  //                   },
-  //                 ),
-  //               ),
-  //             ),
-  //             const SizedBox(height: 20),
-  //             AppButton(
-  //               onPressed: () {
-  //                 if (_dateOfBirthController.text.isNotEmpty &&
-  //                     _phoneController.text.isNotEmpty &&
-  //                     genderController.text.isNotEmpty &&
-  //                     _addressController.text.isNotEmpty &&
-  //                     model.selectedCountryCode != null) {
-  //                   model.processCompleteProfile(
-  //                     context,
-  //                     _dateOfBirthController.text,
-  //                     genderController.text,
-  //                     _addressController.text,
-  //                     _phoneController.text,
-  //                   );
-  //                 }
-  //               },
-  //               text: 'Update',
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
+  Widget _updateKYC() {
+    return BaseView<AuthViewModel>(
+      onModelReady: (model) {},
+      builder: (context, model, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("KYC Verification",
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
+                ],
+              ),
+              const SizedBox(height: 30),
+              TextField(
+                controller: idNumber,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'ID number',
+                  hintStyle: GoogleFonts.inter(
+                    textStyle: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade400,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.background,
+                    ),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(left: 10),
+                decoration: BoxDecoration(
+                  border:
+                      Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    dropdownColor: Colors.white,
+                    hint: const Text(
+                      'Select ID type',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    value: model.selectedID,
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: Color(0xff161616), size: 16),
+                    items: model.kycId.map((coin) {
+                      return DropdownMenuItem<String>(
+                        value: coin['id'],
+                        child: Text(
+                          coin['name']!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      print('onChanged fired with: $val');
+                      // <-- use dialog's setState
+                      setState(() {
+                        // <-- use dialog's setState
+                        model.selectedID = val!;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton.icon(
+                  style: const ButtonStyle(
+                    shadowColor: WidgetStatePropertyAll(
+                        Colors.transparent),
+                    backgroundColor: WidgetStatePropertyAll(
+                        AppColors.primary),
+                  ),
+                  icon: const Icon(
+                    Icons.upload,
+                    color: Color(0xffFFFFFF),
+                  ),
+                  label: const Text(
+                    "Tap to Upload ID Photo",
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                  onPressed: pickImage,
+                ),
+              ),
+              if (base64Image != null) ...[
+                const SizedBox(height: 12),
+                const Center(
+                  child: Text("✅ Image selected"),
+                ),
+                Center(
+                  child:
+                      Image.network(base64Image!, height: 120),
+                ), // preview
+              ],
+              const SizedBox(height: 30),
+              AppButton(
+                onPressed: () {
+                  if (idNumber.text.isNotEmpty &&
+                      model.selectedID != null &&
+                      base64Image != null) {
+                    model.processKyc(
+                      context,
+                      idNumber.text,
+                      model.selectedID!,
+                      base64Image!,
+                    );
+                  } else {
+                    showCustomToast('Missing Required Fields',
+                        toastType: ToastType.warning);
+                  }
+                },
+                text: 'Update KYC',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   // Menu tile
   static Widget _menuTile({

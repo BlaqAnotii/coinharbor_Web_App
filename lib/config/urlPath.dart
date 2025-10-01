@@ -22,5 +22,8 @@ class UrlPath {
   static const getinvestments = '/investment_history.php';
   static const investwithdraw = '/investments_withdraw.php';
   static const completeProfile = '/complete_profile.php';
+  static const updateKYC = '/kyc_verify.php';
+    static const kYCstatus = '/kyc_status.php';
+
 
 }

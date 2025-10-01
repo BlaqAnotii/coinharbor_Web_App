@@ -123,6 +123,23 @@ class AuthRepository {
     return responseData;
   }
 
+  Future updateKyc(Map<String, dynamic> data) async {
+    var response = await httpPost(
+      UrlPath.updateKYC,
+      data,
+    );
+    final responseData = (response.data);
+    if (responseData['status'] == true) {
+      print('recovery IS OK');
+      print(responseData);
+    } else {
+      print('recovery FAILED');
+    }
+    // trying to get the token from the response and storing using sharedPreferences
+
+    return responseData;
+  }
+
   Future addWallet(Map<String, dynamic> data) async {
     var response = await httpPost(
       UrlPath.addWallet,

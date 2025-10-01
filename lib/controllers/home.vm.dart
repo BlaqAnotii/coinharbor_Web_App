@@ -5,6 +5,7 @@ import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
 import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
+import 'package:coinharbor/data/model/kyc_model.dart';
 import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/user_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
@@ -22,6 +23,23 @@ class HomeViewModel extends BaseViewModel {
       startLoader();
       final fetchedUser = await userService.getUserDetail();
       user = fetchedUser;
+      notifyListeners();
+      stopLoader();
+      return user;
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+      return null;
+    }
+  }
+
+   KycData? kyc;
+  Future<User?> getKycstatus() async {
+    try {
+      startLoader();
+      final fetchedUser = await userService.getKycDetail();
+      kyc = fetchedUser;
       notifyListeners();
       stopLoader();
       return user;

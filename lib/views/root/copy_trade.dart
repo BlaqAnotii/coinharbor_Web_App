@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:coinharbor/controllers/home.vm.dart';
 import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
 import 'package:coinharbor/resources/colors.dart';
+import 'package:coinharbor/utils/snack_message.dart';
 import 'package:coinharbor/utils/widget_extensions.dart';
 import 'package:coinharbor/views/base.dart';
 import 'package:coinharbor/widgets/app_buttons.dart';
@@ -18,6 +21,27 @@ class CopyTradeScreen extends StatefulWidget {
 
 class _CopyTradeScreenState extends State<CopyTradeScreen> {
   List<Expert> experts = [];
+
+   Timer? _timer; // ✅ store the timer reference
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final model = HomeViewModel(); // ⚠️ Replace with your provider/get_it if needed
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _handleRefresh(model);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // ✅ Stop timer when leaving screen
+    super.dispose();
+  }
 
   Future<void> fetchTransaction(HomeViewModel model) async {
     try {
@@ -43,89 +67,112 @@ class _CopyTradeScreenState extends State<CopyTradeScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isMobile = constraints.maxWidth < 700;
+  TextEditingController percentController =
+      TextEditingController();
+  TextEditingController valueController =
+      TextEditingController();
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                const SizedBox(
-                  height: 30,
-                ),
-                // Responsive layout
-                isMobile
-                    ? Column(
-                        children: [
-                          _buildRidersList(isMobile: true),
-                          const SizedBox(height: 16),
-                          _buildOrderHistory(),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              flex: 3,
-                              child: _buildRidersList(
-                                  isMobile: false)),
-                          const SizedBox(width: 16),
-                          Expanded(
-                              flex: 2,
-                              child: _buildOrderHistory()),
-                        ],
-                      ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+  /// ✅ Refresh handler for pull-to-refresh
+  Future<void> _handleRefresh(HomeViewModel model) async {
+    try {
+// await sequentially to avoid type issues with Future.wait and void futures
+      await fetchTransaction(model);
+      await fetchCopy(model);
+    } catch (e, st) {
+      debugPrint('Error refreshing account screen: $e\n$st');
+      showCustomToast('Failed to refresh data',
+          toastType: ToastType.error);
+      // rethrow if you want RefreshIndicator to show error higher up (not required)
+    }
   }
 
-  // Riders list
-  Widget _buildRidersList({required bool isMobile}) {
+  @override
+  Widget build(BuildContext context) {
     return BaseView<HomeViewModel>(onModelReady: (model) {
       fetchTransaction(model);
+      fetchCopy(model);
     }, builder: (context, model, child) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.background,
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => _handleRefresh(model),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              bool isMobile = constraints.maxWidth < 700;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Bar
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    // Responsive layout
+                    isMobile
+                        ? Column(
+                            children: [
+                              _buildRidersList(isMobile: true),
+                              const SizedBox(height: 16),
+                              _buildOrderHistory(),
+                            ],
+                          )
+                        : Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                  flex: 3,
+                                  child: _buildRidersList(
+                                      isMobile: false)),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  flex: 2,
+                                  child: _buildOrderHistory()),
+                            ],
+                          ),
+                  ],
+                ),
+              );
+            },
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Top Rated Expert Traders",
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 20),
-            Column(
-              children: experts
-                  .take(5)
-                  .map((expert) => _riderTile(expert, isMobile))
-                  .toList(),
-            ),
-          ],
         ),
       );
     });
   }
 
+  // Riders list
+  Widget _buildRidersList({required bool isMobile}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.background,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Top Rated Expert Traders",
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          Column(
+            children: experts
+                .take(5)
+                .map((expert) => _riderTile(expert, isMobile))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
 // Single rider row
   Widget _riderTile(Expert expert, bool isMobile) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         if (isMobile) _showSelectDialog(context, expert);
       },
@@ -228,11 +275,6 @@ class _CopyTradeScreenState extends State<CopyTradeScreen> {
       context: context,
       builder: (context) {
         bool isMobile = MediaQuery.of(context).size.width < 700;
-
-        TextEditingController percentController =
-            TextEditingController();
-        TextEditingController valueController =
-            TextEditingController();
 
         return BaseView<HomeViewModel>(
             onModelReady: (model) {},
@@ -414,34 +456,30 @@ class _CopyTradeScreenState extends State<CopyTradeScreen> {
 
   // Order history card
   Widget _buildOrderHistory() {
-    return BaseView<HomeViewModel>(onModelReady: (model) {
-      fetchCopy(model);
-    }, builder: (context, model, child) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.background,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.background,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Copied Trades",
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-            Column(
-              children: copy
-                  .map((copys) => _orderTile(copys))
-                  .toList(),
-            )
-          ],
-        ),
-      );
-    });
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Copied Trades",
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          Column(
+            children: copy
+                .map((copys) => _orderTile(copys))
+                .toList(),
+          )
+        ],
+      ),
+    );
   }
 
   // Single order row

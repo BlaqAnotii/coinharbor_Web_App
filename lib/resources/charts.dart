@@ -1,5 +1,6 @@
 // lib/widgets/candle_chart_widget.dart
 import 'dart:async';
+import 'package:coinharbor/utils/snack_message.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:interactive_chart/interactive_chart.dart';
@@ -40,17 +41,20 @@ class _CandleChartWidgetState extends State<CandleChartWidget> {
   @override
   void initState() {
     super.initState();
-    _loadCandles();
-    _timer = Timer.periodic(
-        widget.refreshInterval, (_) => _loadCandles());
+
+    // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _handleRefresh();
+      });
+    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer?.cancel(); // ✅ Stop timer when leaving screen
     super.dispose();
   }
-
   Future<void> _loadCandles() async {
     setState(() {
       _loading = true;
@@ -110,6 +114,20 @@ class _CandleChartWidgetState extends State<CandleChartWidget> {
     if (widget.days <= 1) return DateFormat('HH:mm').format(dt);
     return DateFormat('MM/dd').format(dt);
   }
+
+   /// ✅ Refresh handler for pull-to-refresh
+  Future<void> _handleRefresh() async {
+    try {
+// await sequentially to avoid type issues with Future.wait and void futures
+      await _loadCandles();
+    } catch (e, st) {
+      debugPrint('Error refreshing account screen: $e\n$st');
+      showCustomToast('Failed to refresh data',
+          toastType: ToastType.error);
+      // rethrow if you want RefreshIndicator to show error higher up (not required)
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:coinharbor/controllers/home.vm.dart';
 import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
 import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
 import 'package:coinharbor/resources/colors.dart';
+import 'package:coinharbor/utils/snack_message.dart';
 import 'package:coinharbor/views/base.dart';
 import 'package:coinharbor/widgets/app_buttons.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +22,28 @@ class InvestmentsScreen extends StatefulWidget {
 
 class _InvestmentsScreenState extends State<InvestmentsScreen> {
   List<InvestmentOption> options = [];
+
+  Timer? _timer; // ✅ store the timer reference
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final model = HomeViewModel(); // ⚠️ Replace with your provider/get_it if needed
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _handleRefresh(model);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // ✅ Stop timer when leaving screen
+    super.dispose();
+  }
+
 
   Future<void> fetchTransaction(HomeViewModel model) async {
     try {
@@ -46,83 +71,103 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     }
   }
 
+   /// ✅ Refresh handler for pull-to-refresh
+  Future<void> _handleRefresh(HomeViewModel model) async {
+    try {
+// await sequentially to avoid type issues with Future.wait and void futures
+      await fetchTransaction(model);
+      await fetchInvest(model);
+    } catch (e, st) {
+      debugPrint('Error refreshing account screen: $e\n$st');
+      showCustomToast('Failed to refresh data',
+          toastType: ToastType.error);
+      // rethrow if you want RefreshIndicator to show error higher up (not required)
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isMobile = constraints.maxWidth < 700;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                const SizedBox(
-                  height: 30,
-                ),
-                // Responsive layout
-                isMobile
-                    ? Column(
-                        children: [
-                          _buildRidersList(isMobile: true),
-                          const SizedBox(height: 16),
-                          _buildOrderHistory(),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              flex: 3,
-                              child: _buildRidersList(
-                                  isMobile: false)),
-                          const SizedBox(width: 16),
-                          Expanded(
-                              flex: 2,
-                              child: _buildOrderHistory()),
-                        ],
+    return BaseView<HomeViewModel>(onModelReady: (model) {
+      fetchTransaction(model);
+      fetchInvest(model);
+    }, builder: (context, model, child) {
+        return SafeArea(
+          child:  RefreshIndicator(
+              onRefresh: () => _handleRefresh(model),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isMobile = constraints.maxWidth < 700;
+            
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search Bar
+                      const SizedBox(
+                        height: 30,
                       ),
-              ],
+                      // Responsive layout
+                      isMobile
+                          ? Column(
+                              children: [
+                                _buildRidersList(isMobile: true),
+                                const SizedBox(height: 16),
+                                _buildOrderHistory(),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                    flex: 3,
+                                    child: _buildRidersList(
+                                        isMobile: false)),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                    flex: 2,
+                                    child: _buildOrderHistory()),
+                              ],
+                            ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      }
     );
   }
 
   // Riders list
   Widget _buildRidersList({required bool isMobile}) {
-    return BaseView<HomeViewModel>(onModelReady: (model) {
-      fetchTransaction(model);
-    }, builder: (context, model, child) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.background,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.background,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Investment Options",
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          Column(
+            children: options
+                .map((opt) => _riderTile(opt, isMobile))
+                .toList(),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Investment Options",
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 20),
-            Column(
-              children: options
-                  .map((opt) => _riderTile(opt, isMobile))
-                  .toList(),
-            ),
-          ],
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 
 // Single rider row

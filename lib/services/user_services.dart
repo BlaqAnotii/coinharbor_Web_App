@@ -6,6 +6,7 @@ import 'package:coinharbor/data/model/copy_trade_model.dart';
 import 'package:coinharbor/data/model/expert_model.dart';
 import 'package:coinharbor/data/model/invest_history_model.dart';
 import 'package:coinharbor/data/model/investment_options_model.dart';
+import 'package:coinharbor/data/model/kyc_model.dart';
 import 'package:coinharbor/data/model/transaction_model.dart';
 import 'package:coinharbor/data/model/wallet_model.dart';
 import 'package:coinharbor/data/model/user_model.dart' hide Wallet;
@@ -68,6 +69,42 @@ class UserServices extends ChangeNotifier {
         if (userData != null) {
           notifyListeners();
           return User.fromJson(userData);
+        } else {
+          print("No 'data' key found in the response");
+        }
+      } else {
+        print("Invalid response or status=false");
+      }
+    } catch (e, t) {
+      print("Error in getUserDetail: $e");
+      print(t);
+    }
+    return null;
+  }
+
+  Future<KycData?> getKycDetail() async {
+    String? token = cache.getStringPreference('token');
+
+    try {
+      print('ECHO:::::::$token');
+      var response = await httpGet(
+        UrlPath.kYCstatus,
+        hasAuth: true,
+        token: token ?? "",
+      );
+
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      final responseData = response.data;
+
+      if (responseData != null &&
+          responseData['status'] == true) {
+        var userData =
+            responseData['data']; // ✅ correct key is "data"
+        if (userData != null) {
+          notifyListeners();
+          return KycData.fromJson(userData);
         } else {
           print("No 'data' key found in the response");
         }

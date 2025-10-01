@@ -215,6 +215,22 @@ class AuthViewModel extends BaseViewModel {
 
   int? selectedCountryCode;
   String? selectedgender;
+  String? selectedID;
+
+  final List<Map<String, dynamic>> kycId = [
+    {
+      "id": "National ID",
+      "name": "National ID",
+    },
+    {
+      "id": "Driver's License",
+      "name": "Driver's License",
+    },
+    {
+      "id": "Passport",
+      "name": "Passport",
+    },
+  ];
 
   final List<Map<String, dynamic>> gender = [
     {
@@ -2001,6 +2017,51 @@ class AuthViewModel extends BaseViewModel {
 
         showCustomToast(
           responseData['message'] ?? "Profile Updated",
+          toastType: ToastType.success,
+        );
+        context.pop();
+      } else {
+        // Handle invalid or null response
+        stopLoader();
+        showCustomToast(
+          responseData['message'] ??
+              "Something went wrong. Please try again.",
+          toastType: ToastType.error,
+        );
+        context.pop();
+      }
+      stopLoader();
+    } catch (e, l) {
+      stopLoader();
+      print(e);
+      print(l);
+    }
+  }
+
+  Future processKyc(
+    BuildContext context,
+    String number,
+    String selectId,
+    String
+        base64Image, // pass your picked image as base64 string
+  ) async {
+    try {
+      startLoader();
+      var data = {
+        "id_number": number,
+        "id_type": selectedID,
+        "id_photo": base64Image
+      };
+
+      print("Payload: $data");
+
+      var responseData = await authRepo.updateKyc(data);
+
+      if (responseData['status'] == true) {
+        print('CONTROLLER:::: $responseData');
+
+        showCustomToast(
+          responseData['message'] ?? "KYC Updated",
           toastType: ToastType.success,
         );
         context.pop();

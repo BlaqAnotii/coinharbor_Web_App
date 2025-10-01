@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:coinharbor/controllers/home.vm.dart';
@@ -29,6 +30,7 @@ class TransactionsScreen extends StatefulWidget {
 class _TransactionsScreenState
     extends State<TransactionsScreen> {
   User? user;
+   Timer? _timer; // ✅ store the timer reference
 
   getUserDetails(HomeViewModel model) async {
     await model.getUser();
@@ -131,6 +133,13 @@ class _TransactionsScreenState
   @override
   void initState() {
     super.initState();
+     // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final model = HomeViewModel(); // ⚠️ Replace with your provider/get_it if needed
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        _handleRefresh(model);
+      });
+    });
     print('initState selectedCrypto2 = $selectedCrypto2');
 
     cryptoController
@@ -139,6 +148,8 @@ class _TransactionsScreenState
 
   @override
   void dispose() {
+        _timer?.cancel(); // ✅ Stop timer when leaving screen
+
     cryptoController.dispose();
     super.dispose();
   }
@@ -157,6 +168,21 @@ class _TransactionsScreenState
     }
   }
 
+   /// ✅ Refresh handler for pull-to-refresh
+  Future<void> _handleRefresh(HomeViewModel model) async {
+    try {
+// await sequentially to avoid type issues with Future.wait and void futures
+      await fetchTransaction(model);
+      await getUserDetails(model);
+    } catch (e, st) {
+      debugPrint('Error refreshing account screen: $e\n$st');
+      showCustomToast('Failed to refresh data',
+          toastType: ToastType.error);
+      // rethrow if you want RefreshIndicator to show error higher up (not required)
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
@@ -170,612 +196,615 @@ class _TransactionsScreenState
       fetchTransaction(model);
     }, builder: (context, model, child) {
       return SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 30,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              desktop
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: CalcWidth(context, 690,
-                                      maxWidth: 720),
-                                  height: 155.0,
-                                  decoration: BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                              10),
-                                      image:
-                                          const DecorationImage(
-                                        image: AssetImage(
-                                            'assets/image/dashboard.png'),
-                                        fit: BoxFit.cover,
-                                      )),
-                                  child: Padding(
-                                    padding: const EdgeInsets
-                                        .symmetric(
-                                      horizontal: 20,
-                                      vertical: 13,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .center,
-                                      children: [
-                                        const Text(
-                                          'Main Account',
-                                          style: TextStyle(
-                                              color:
-                                                  Colors.white,
-                                              fontSize: 17),
-                                        ),
-                                        const SizedBox(
-                                            height: 9),
-                                        Text(
-                                          (user == null)
-                                              ? '\$1.00'
-                                              : NumberFormat
-                                                  .currency(
-                                                  locale:
-                                                      'en_US', // US formatting style
-                                                  symbol:
-                                                      '\$', // Currency symbol
-                                                ).format(user!
-                                                  .fiatBalance),
-                                          style: const TextStyle(
-                                            fontWeight:
-                                                FontWeight.bold,
-                                            fontSize: 29,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        AppButton3(
-                                            onPressed: () {
-                                              context.go(
-                                                  '/homepage?tab=Dashboard');
-                                            },
-                                            width: 145,
-                                            height: 35,
-                                            text: "Add Funds")
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: screenSize.width / 70,
-                                ),
-                                Container(
-                                    width: CalcWidth(
-                                        context, 320,
-                                        maxWidth: 320),
+        child:  RefreshIndicator(
+          onRefresh: () => _handleRefresh(model),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 30,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                desktop
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: CalcWidth(context, 690,
+                                        maxWidth: 720),
                                     height: 155.0,
                                     decoration: BoxDecoration(
                                         borderRadius:
-                                            BorderRadius
-                                                .circular(10),
-                                        border: Border.all(
-                                          color: AppColors
-                                              .background,
-                                        )))
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.all(
-                                            10.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .start,
-                                      children: [
-                                        Container(
-                                          decoration:
-                                              BoxDecoration(
-                                            color: AppColors
-                                                .white, // Background color
-                                            borderRadius:
-                                                BorderRadius
-                                                    .circular(
-                                                        10),
-                                            border: Border.all(
-                                              color: AppColors
-                                                  .foundationGreyLighter,
-                                              width: 0.3,
+                                            BorderRadius.circular(
+                                                10),
+                                        image:
+                                            const DecorationImage(
+                                          image: AssetImage(
+                                              'assets/image/dashboard.png'),
+                                          fit: BoxFit.cover,
+                                        )),
+                                    child: Padding(
+                                      padding: const EdgeInsets
+                                          .symmetric(
+                                        horizontal: 20,
+                                        vertical: 13,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .center,
+                                        children: [
+                                          const Text(
+                                            'Main Account',
+                                            style: TextStyle(
+                                                color:
+                                                    Colors.white,
+                                                fontSize: 17),
+                                          ),
+                                          const SizedBox(
+                                              height: 9),
+                                          Text(
+                                            (user == null)
+                                                ? '\$1.00'
+                                                : NumberFormat
+                                                    .currency(
+                                                    locale:
+                                                        'en_US', // US formatting style
+                                                    symbol:
+                                                        '\$', // Currency symbol
+                                                  ).format(user!
+                                                    .fiatBalance),
+                                            style: const TextStyle(
+                                              fontWeight:
+                                                  FontWeight.bold,
+                                              fontSize: 29,
+                                              color: Colors.white,
                                             ),
                                           ),
-                                          child: Theme(
-                                            data:
-                                                Theme.of(context)
-                                                    .copyWith(
-                                              cardColor:
-                                                  Colors.white,
-                                              dividerColor:
-                                                  Colors.grey,
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          AppButton3(
+                                              onPressed: () {
+                                                context.go(
+                                                    '/homepage?tab=Dashboard');
+                                              },
+                                              width: 145,
+                                              height: 35,
+                                              text: "Add Funds")
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: screenSize.width / 70,
+                                  ),
+                                  Container(
+                                      width: CalcWidth(
+                                          context, 320,
+                                          maxWidth: 320),
+                                      height: 155.0,
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius
+                                                  .circular(10),
+                                          border: Border.all(
+                                            color: AppColors
+                                                .background,
+                                          )))
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.all(
+                                              10.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                        children: [
+                                          Container(
+                                            decoration:
+                                                BoxDecoration(
+                                              color: AppColors
+                                                  .white, // Background color
+                                              borderRadius:
+                                                  BorderRadius
+                                                      .circular(
+                                                          10),
+                                              border: Border.all(
+                                                color: AppColors
+                                                    .foundationGreyLighter,
+                                                width: 0.3,
+                                              ),
                                             ),
-                                            child: transact
-                                                    .isEmpty
-                                                ? const Center(
-                                                    child: Text(
-                                                        "No Transaction found"),
-                                                  )
-                                                : DataTable(
-                                                    headingRowColor:
-                                                        WidgetStateProperty
-                                                            .all(
-                                                      AppColors
-                                                          .background,
-                                                    ),
-                                                    dataRowHeight:
-                                                        60,
-                                                    columnSpacing:
-                                                        45,
-                                                    dividerThickness:
-                                                        0.1,
-                                                    columns: const [
-                                                      DataColumn(
-                                                        label:
-                                                            Text(
-                                                          'Type',
+                                            child: Theme(
+                                              data:
+                                                  Theme.of(context)
+                                                      .copyWith(
+                                                cardColor:
+                                                    Colors.white,
+                                                dividerColor:
+                                                    Colors.grey,
+                                              ),
+                                              child: transact
+                                                      .isEmpty
+                                                  ? const Center(
+                                                      child: Text(
+                                                          "No Transaction found"),
+                                                    )
+                                                  : DataTable(
+                                                      headingRowColor:
+                                                          WidgetStateProperty
+                                                              .all(
+                                                        AppColors
+                                                            .background,
+                                                      ),
+                                                      dataRowHeight:
+                                                          60,
+                                                      columnSpacing:
+                                                          45,
+                                                      dividerThickness:
+                                                          0.1,
+                                                      columns: const [
+                                                        DataColumn(
+                                                          label:
+                                                              Text(
+                                                            'Type',
+                                                            style:
+                                                                TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Asset',
                                                           style:
                                                               TextStyle(
                                                             fontWeight:
                                                                 FontWeight.w600,
                                                           ),
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Asset',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      )),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Amount',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      )),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Fiat Amount',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontSize:
-                                                              12,
-                                                        ),
-                                                      )),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Description',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      )),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Date/Time',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      )),
-                                                      DataColumn(
-                                                          label:
-                                                              Text(
-                                                        'Status',
-                                                        style:
-                                                            TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      )),
-                                                    ],
-                                                    rows: transact
-                                                        // 👈 only keep 4 transactions
-                                                        .map((members) {
-                                                      Color
-                                                          statusColor;
-                                                      switch (members
-                                                          .status
-                                                          .toLowerCase()) {
-                                                        case 'completed':
-                                                          statusColor =
-                                                              Colors.green;
-                                                          break;
-                                                        case 'pending':
-                                                          statusColor =
-                                                              Colors.orange;
-                                                          break;
-                                                        case 'failed':
-                                                          statusColor =
-                                                              Colors.red;
-                                                          break;
-                                                        default:
-                                                          statusColor =
-                                                              Colors.grey;
-                                                      }
-
-                                                      return DataRow(
-                                                        cells: [
-                                                          DataCell(Text(members.type.isNotEmpty
-                                                              ? members.type
-                                                              : '-')),
-                                                          DataCell(
-                                                            Text(
-                                                              members.asset,
-                                                              style: const TextStyle(
-                                                                fontWeight: FontWeight.w600,
-                                                              ),
-                                                            ),
+                                                        )),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Amount',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
                                                           ),
-                                                          DataCell(Text(members
-                                                              .amount
-                                                              .toStringAsFixed(2))),
-                                                          DataCell(Text(members
-                                                              .fiatAmount
-                                                              .toStringAsFixed(2))),
-                                                          DataCell(
-                                                              Text(members.description)),
-                                                          DataCell(
-                                                              Text(members.createdAt)),
-                                                          DataCell(
-                                                            Container(
-                                                              padding: const EdgeInsets.symmetric(
-                                                                horizontal: 10,
-                                                                vertical: 6,
-                                                              ),
-                                                              decoration: BoxDecoration(
-                                                                color: statusColor.withOpacity(0.15),
-                                                                borderRadius: BorderRadius.circular(6),
-                                                              ),
-                                                              child: Text(
-                                                                members.status,
-                                                                style: TextStyle(
-                                                                  color: statusColor,
+                                                        )),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Fiat Amount',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontSize:
+                                                                12,
+                                                          ),
+                                                        )),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Description',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        )),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Date/Time',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        )),
+                                                        DataColumn(
+                                                            label:
+                                                                Text(
+                                                          'Status',
+                                                          style:
+                                                              TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        )),
+                                                      ],
+                                                      rows: transact
+                                                          // 👈 only keep 4 transactions
+                                                          .map((members) {
+                                                        Color
+                                                            statusColor;
+                                                        switch (members
+                                                            .status
+                                                            .toLowerCase()) {
+                                                          case 'completed':
+                                                            statusColor =
+                                                                Colors.green;
+                                                            break;
+                                                          case 'pending':
+                                                            statusColor =
+                                                                Colors.orange;
+                                                            break;
+                                                          case 'failed':
+                                                            statusColor =
+                                                                Colors.red;
+                                                            break;
+                                                          default:
+                                                            statusColor =
+                                                                Colors.grey;
+                                                        }
+          
+                                                        return DataRow(
+                                                          cells: [
+                                                            DataCell(Text(members.type.isNotEmpty
+                                                                ? members.type
+                                                                : '-')),
+                                                            DataCell(
+                                                              Text(
+                                                                members.asset,
+                                                                style: const TextStyle(
                                                                   fontWeight: FontWeight.w600,
                                                                 ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    }).toList(),
-                                                  ),
+                                                            DataCell(Text(members
+                                                                .amount
+                                                                .toStringAsFixed(2))),
+                                                            DataCell(Text(members
+                                                                .fiatAmount
+                                                                .toStringAsFixed(2))),
+                                                            DataCell(
+                                                                Text(members.description)),
+                                                            DataCell(
+                                                                Text(members.createdAt)),
+                                                            DataCell(
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(
+                                                                  horizontal: 10,
+                                                                  vertical: 6,
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                  color: statusColor.withOpacity(0.15),
+                                                                  borderRadius: BorderRadius.circular(6),
+                                                                ),
+                                                                child: Text(
+                                                                  members.status,
+                                                                  style: TextStyle(
+                                                                    color: statusColor,
+                                                                    fontWeight: FontWeight.w600,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      }).toList(),
+                                                    ),
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ])
-                          ],
-                        ),
-                      ],
-                    )
-                  :
-//////////////////////////////////////////////////////////////////////////
-                  //////////////// //MOBILE BEGINS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                  ///MOBILE IS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                  ///
-                  Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: CalcWidth(context, 690,
-                                  maxWidth: 720),
-                              height: 155.0,
-                              decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.circular(10),
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                        'assets/image/dashboard.png'),
-                                    fit: BoxFit.cover,
-                                  )),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 13,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      'Main Account',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 17),
-                                    ),
-                                    const SizedBox(height: 9),
-                                    Text(
-                                      (user == null)
-                                          ? '\$1.00'
-                                          : NumberFormat
-                                              .currency(
-                                              locale:
-                                                  'en_US', // US formatting style
-                                              symbol:
-                                                  '\$', // Currency symbol
-                                            ).format(
-                                              user!.fiatBalance),
-                                      style: const TextStyle(
-                                        fontWeight:
-                                            FontWeight.bold,
-                                        fontSize: 29,
-                                        color: Colors.white,
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(
-                                      height: 15,
-                                    ),
-                                    AppButton3(
-                                        onPressed: () {
-                                          context.go(
-                                              '/homepage?tab=Dashboard');
-                                        },
-                                        width: 145,
-                                        height: 35,
-                                        text: "Add Funds")
-                                  ],
+                                  ])
+                            ],
+                          ),
+                        ],
+                      )
+                    :
+          //////////////////////////////////////////////////////////////////////////
+                    //////////////// //MOBILE BEGINS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    ///MOBILE IS HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    ///
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: CalcWidth(context, 690,
+                                    maxWidth: 720),
+                                height: 155.0,
+                                decoration: BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                    image: const DecorationImage(
+                                      image: AssetImage(
+                                          'assets/image/dashboard.png'),
+                                      fit: BoxFit.cover,
+                                    )),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 13,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'Main Account',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 17),
+                                      ),
+                                      const SizedBox(height: 9),
+                                      Text(
+                                        (user == null)
+                                            ? '\$1.00'
+                                            : NumberFormat
+                                                .currency(
+                                                locale:
+                                                    'en_US', // US formatting style
+                                                symbol:
+                                                    '\$', // Currency symbol
+                                              ).format(
+                                                user!.fiatBalance),
+                                        style: const TextStyle(
+                                          fontWeight:
+                                              FontWeight.bold,
+                                          fontSize: 29,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 15,
+                                      ),
+                                      AppButton3(
+                                          onPressed: () {
+                                            context.go(
+                                                '/homepage?tab=Dashboard');
+                                          },
+                                          width: 145,
+                                          height: 35,
+                                          text: "Add Funds")
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 25,
-                            ),
-                            // const SizedBox(
-                            //   height: 25,
-                            // ),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors
-                                      .white, // Background color
-                                  borderRadius:
-                                      BorderRadius.circular(10),
-                                  border: Border.all(
+                              const SizedBox(
+                                height: 25,
+                              ),
+                              // const SizedBox(
+                              //   height: 25,
+                              // ),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Container(
+                                  decoration: BoxDecoration(
                                     color: AppColors
-                                        .foundationGreyLighter,
-                                    width: 0.3,
+                                        .white, // Background color
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: AppColors
+                                          .foundationGreyLighter,
+                                      width: 0.3,
+                                    ),
                                   ),
-                                ),
-                                child: Theme(
-                                  data:
-                                      Theme.of(context).copyWith(
-                                    cardColor: Colors.white,
-                                    dividerColor: Colors.grey,
-                                  ),
-                                  child: transact.isEmpty
-                                      ? const Center(
-                                          child: Text(
-                                              "No Transaction found"),
-                                        )
-                                      : DataTable(
-                                          headingRowColor:
-                                              WidgetStateProperty
-                                                  .all(
-                                            AppColors.background,
-                                          ),
-                                          dataRowHeight: 60,
-                                          columnSpacing: 45,
-                                          dividerThickness: 0.1,
-                                          columns: const [
-                                            DataColumn(
-                                              label: Text(
-                                                'Type',
+                                  child: Theme(
+                                    data:
+                                        Theme.of(context).copyWith(
+                                      cardColor: Colors.white,
+                                      dividerColor: Colors.grey,
+                                    ),
+                                    child: transact.isEmpty
+                                        ? const Center(
+                                            child: Text(
+                                                "No Transaction found"),
+                                          )
+                                        : DataTable(
+                                            headingRowColor:
+                                                WidgetStateProperty
+                                                    .all(
+                                              AppColors.background,
+                                            ),
+                                            dataRowHeight: 60,
+                                            columnSpacing: 45,
+                                            dividerThickness: 0.1,
+                                            columns: const [
+                                              DataColumn(
+                                                label: Text(
+                                                  'Type',
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight
+                                                            .w600,
+                                                  ),
+                                                ),
+                                              ),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Asset',
                                                 style: TextStyle(
                                                   fontWeight:
                                                       FontWeight
                                                           .w600,
                                                 ),
-                                              ),
-                                            ),
-                                            DataColumn(
-                                                label: Text(
-                                              'Asset',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
-                                            )),
-                                            DataColumn(
-                                                label: Text(
-                                              'Amount',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
-                                            )),
-                                            DataColumn(
-                                                label: Text(
-                                              'Fiat Amount',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                                fontSize: 12,
-                                              ),
-                                            )),
-                                            DataColumn(
-                                                label: Text(
-                                              'Description',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
-                                            )),
-                                            DataColumn(
-                                                label: Text(
-                                              'Date/Time',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
-                                            )),
-                                            DataColumn(
-                                                label: Text(
-                                              'Status',
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
-                                            )),
-                                          ],
-                                          rows: transact
-                                              // 👈 only keep 4 transactions
-                                              .map((members) {
-                                            Color statusColor;
-                                            switch (members
-                                                .status
-                                                .toLowerCase()) {
-                                              case 'completed':
-                                                statusColor =
-                                                    Colors.green;
-                                                break;
-                                              case 'pending':
-                                                statusColor =
-                                                    Colors
-                                                        .orange;
-                                                break;
-                                              case 'failed':
-                                                statusColor =
-                                                    Colors.red;
-                                                break;
-                                              default:
-                                                statusColor =
-                                                    Colors.grey;
-                                            }
-
-                                            return DataRow(
-                                              cells: [
-                                                DataCell(Text(members
-                                                        .type
-                                                        .isNotEmpty
-                                                    ? members
-                                                        .type
-                                                    : '-')),
-                                                DataCell(
-                                                  Text(
-                                                    members
-                                                        .asset,
-                                                    style:
-                                                        const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight
-                                                              .w600,
-                                                    ),
-                                                  ),
+                                              )),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Amount',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
                                                 ),
-                                                DataCell(Text(members
-                                                    .amount
-                                                    .toStringAsFixed(
-                                                        2))),
-                                                DataCell(Text(members
-                                                    .fiatAmount
-                                                    .toStringAsFixed(
-                                                        2))),
-                                                DataCell(Text(members
-                                                    .description)),
-                                                DataCell(Text(members
-                                                    .createdAt)),
-                                                DataCell(
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                      horizontal:
-                                                          10,
-                                                      vertical:
-                                                          6,
-                                                    ),
-                                                    decoration:
-                                                        BoxDecoration(
-                                                      color: statusColor
-                                                          .withOpacity(
-                                                              0.15),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: Text(
+                                              )),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Fiat Amount',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                  fontSize: 12,
+                                                ),
+                                              )),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Description',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                ),
+                                              )),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Date/Time',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                ),
+                                              )),
+                                              DataColumn(
+                                                  label: Text(
+                                                'Status',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                ),
+                                              )),
+                                            ],
+                                            rows: transact
+                                                // 👈 only keep 4 transactions
+                                                .map((members) {
+                                              Color statusColor;
+                                              switch (members
+                                                  .status
+                                                  .toLowerCase()) {
+                                                case 'completed':
+                                                  statusColor =
+                                                      Colors.green;
+                                                  break;
+                                                case 'pending':
+                                                  statusColor =
+                                                      Colors
+                                                          .orange;
+                                                  break;
+                                                case 'failed':
+                                                  statusColor =
+                                                      Colors.red;
+                                                  break;
+                                                default:
+                                                  statusColor =
+                                                      Colors.grey;
+                                              }
+          
+                                              return DataRow(
+                                                cells: [
+                                                  DataCell(Text(members
+                                                          .type
+                                                          .isNotEmpty
+                                                      ? members
+                                                          .type
+                                                      : '-')),
+                                                  DataCell(
+                                                    Text(
                                                       members
-                                                          .status,
+                                                          .asset,
                                                       style:
-                                                          TextStyle(
-                                                        color:
-                                                            statusColor,
+                                                          const TextStyle(
                                                         fontWeight:
                                                             FontWeight
                                                                 .w600,
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            );
-                                          }).toList(),
-                                        ),
+                                                  DataCell(Text(members
+                                                      .amount
+                                                      .toStringAsFixed(
+                                                          2))),
+                                                  DataCell(Text(members
+                                                      .fiatAmount
+                                                      .toStringAsFixed(
+                                                          2))),
+                                                  DataCell(Text(members
+                                                      .description)),
+                                                  DataCell(Text(members
+                                                      .createdAt)),
+                                                  DataCell(
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets
+                                                              .symmetric(
+                                                        horizontal:
+                                                            10,
+                                                        vertical:
+                                                            6,
+                                                      ),
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        color: statusColor
+                                                            .withOpacity(
+                                                                0.15),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                6),
+                                                      ),
+                                                      child: Text(
+                                                        members
+                                                            .status,
+                                                        style:
+                                                            TextStyle(
+                                                          color:
+                                                              statusColor,
+                                                          fontWeight:
+                                                              FontWeight
+                                                                  .w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            }).toList(),
+                                          ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-            ],
+                            ],
+                          )
+                        ],
+                      ),
+              ],
+            ),
           ),
         ),
       );

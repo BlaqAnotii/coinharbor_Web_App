@@ -19,7 +19,7 @@ class _TradeViewScreenState extends State<TradeViewScreen> {
   String _coinId = "bitcoin";
   String _selectedCurrency = "usd";
   int _selectedDays = 1;
-  Timer? _refreshTimer;
+  Timer? _timer;
 
   final List<String> currencies = [
     "usd",
@@ -39,18 +39,23 @@ class _TradeViewScreenState extends State<TradeViewScreen> {
   @override
   void initState() {
     super.initState();
-    // 🔄 Auto-refresh every 30 seconds
-    _refreshTimer =
-        Timer.periodic(const Duration(seconds: 30), (_) {
-      setState(() {}); // rebuild chart with fresh data
+
+    // ✅ Start auto-refresh every second
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+              setState(() {}); // rebuild chart with fresh data
+
+      });
     });
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
+    _timer?.cancel(); // ✅ Stop timer when leaving screen
     super.dispose();
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
